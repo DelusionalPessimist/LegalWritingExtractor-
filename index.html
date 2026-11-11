@@ -1,0 +1,927 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src data:; connect-src 'none'; form-action 'none'; base-uri 'none'">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="referrer" content="no-referrer">
+<title>Law Hub iOS Prototype</title>
+</head>
+<body>
+
+<style>
+/* Layout: a single iPhone (393×852) centered on a quiet stage at desktop width; full-bleed app at phone width. */
+:root{
+  --stage:#E4E8E5; --stage-ink:#4A5550;
+  --bg:#F2F2F7; --card:#FFFFFF; --fg:#000000; --fg2:rgba(60,60,67,.62); --fg3:rgba(60,60,67,.32);
+  --sep:rgba(60,60,67,.2); --fill:rgba(120,120,128,.12); --fill2:rgba(120,120,128,.2);
+  --bar:rgba(249,249,249,.92); --bezel:#121413;
+  --accent:#1D6A52; --accent-soft:rgba(29,106,82,.12); --on-accent:#FFFFFF;
+  --red:#D7372A; --red-soft:rgba(215,55,42,.11); --orange:#B86E00; --orange-soft:rgba(232,149,0,.14); --green:#248A3D; --green-soft:rgba(36,138,61,.12);
+  --c-con:#1D6A52; --c-tor:#2B5FA8; --c-civ:#8447B5;
+  --hl-i:#FFF0B3; --hl-r:#DCE8FB; --hl-a:#DDF1E3; --hl-c:#F8DCDF; --hl-x:#E9E0F7;
+  --sans:-apple-system,BlinkMacSystemFont,"SF Pro Text","SF Pro Display","Helvetica Neue",Inter,Roboto,Arial,sans-serif;
+  --round:"SF Pro Rounded",ui-rounded,-apple-system,BlinkMacSystemFont,sans-serif;
+  --mono:"SF Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --stage:#0C0F0E; --stage-ink:#93A29B;
+  --bg:#000000; --card:#1C1C1E; --fg:#FFFFFF; --fg2:rgba(235,235,245,.62); --fg3:rgba(235,235,245,.3);
+  --sep:rgba(84,84,88,.62); --fill:rgba(120,120,128,.24); --fill2:rgba(120,120,128,.34);
+  --bar:rgba(24,24,26,.9); --bezel:#2A2D2C;
+  --accent:#43B98E; --accent-soft:rgba(67,185,142,.16); --on-accent:#04140D;
+  --red:#FF5A4E; --red-soft:rgba(255,90,78,.15); --orange:#FFAA33; --orange-soft:rgba(255,170,51,.15); --green:#3DD068; --green-soft:rgba(61,208,104,.14);
+  --c-con:#43B98E; --c-tor:#6EA2F0; --c-civ:#B98AE6;
+  --hl-i:rgba(255,214,10,.22); --hl-r:rgba(100,160,255,.22); --hl-a:rgba(61,208,104,.2); --hl-c:rgba(255,90,110,.22); --hl-x:rgba(175,130,255,.24);
+  color-scheme:dark}}
+:root[data-theme="dark"]{
+  --stage:#0C0F0E; --stage-ink:#93A29B;
+  --bg:#000000; --card:#1C1C1E; --fg:#FFFFFF; --fg2:rgba(235,235,245,.62); --fg3:rgba(235,235,245,.3);
+  --sep:rgba(84,84,88,.62); --fill:rgba(120,120,128,.24); --fill2:rgba(120,120,128,.34);
+  --bar:rgba(24,24,26,.9); --bezel:#2A2D2C;
+  --accent:#43B98E; --accent-soft:rgba(67,185,142,.16); --on-accent:#04140D;
+  --red:#FF5A4E; --red-soft:rgba(255,90,78,.15); --orange:#FFAA33; --orange-soft:rgba(255,170,51,.15); --green:#3DD068; --green-soft:rgba(61,208,104,.14);
+  --c-con:#43B98E; --c-tor:#6EA2F0; --c-civ:#B98AE6;
+  --hl-i:rgba(255,214,10,.22); --hl-r:rgba(100,160,255,.22); --hl-a:rgba(61,208,104,.2); --hl-c:rgba(255,90,110,.22); --hl-x:rgba(175,130,255,.24);
+  color-scheme:dark}
+
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{margin:0;background:var(--stage);color:var(--fg);font:17px/1.35 var(--sans);-webkit-font-smoothing:antialiased}
+button,input,textarea,select{font:inherit;color:inherit}
+button{cursor:pointer;background:none;border:0;padding:0}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px}
+
+/* ---------- stage + device ---------- */
+.stage{min-height:100%;display:flex;align-items:center;justify-content:center;gap:48px;padding-block:28px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.aside{max-width:290px;color:var(--stage-ink);font-size:14px;line-height:1.5;display:flex;flex-direction:column;gap:12px}
+.aside h1{font:700 26px/1.15 var(--round);color:var(--fg);margin:0;text-wrap:balance}
+.aside .badge{align-self:flex-start;font:600 11px var(--mono);letter-spacing:.08em;text-transform:uppercase;padding:4px 9px;border-radius:999px;background:var(--accent-soft);color:var(--accent)}
+.aside ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:4px}
+.phone{position:relative;width:393px;height:852px;flex:none;border-radius:56px;background:var(--bezel);padding:11px;box-shadow:0 30px 80px -20px rgba(0,0,0,.45),0 0 0 1.5px rgba(255,255,255,.06) inset}
+.screen{position:relative;width:100%;height:100%;border-radius:46px;overflow:hidden;background:var(--bg);display:flex;flex-direction:column;isolation:isolate}
+.island{position:absolute;top:11px;left:50%;transform:translateX(-50%);width:122px;height:35px;border-radius:20px;background:#000;z-index:30}
+.sbar{height:54px;flex:none;display:flex;align-items:flex-end;justify-content:space-between;padding:0 30px 9px 46px;font:600 16px var(--sans);position:relative;z-index:20;background:var(--bar)}
+.sbar .ic{display:flex;gap:6px;align-items:center}
+.sbar svg{fill:var(--fg)}
+.homebar{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);width:134px;height:5px;border-radius:3px;background:var(--fg);opacity:.85;z-index:40;pointer-events:none}
+@media (max-width:860px){.aside{display:none}}
+@media (max-width:520px){
+  .stage{padding:0;display:block;height:100%}
+  .phone{width:100%;height:100%;border-radius:0;padding:0;box-shadow:none;background:var(--bg)}
+  .screen{border-radius:0}
+  .island,.sbar,.homebar{display:none}
+}
+@media (max-height:900px) and (min-width:521px){.phone{transform:scale(.88);transform-origin:center;margin:-50px -24px}}
+@media (max-height:780px) and (min-width:521px){.phone{transform:scale(.78);margin:-94px -43px}}
+
+/* ---------- navigation ---------- */
+.viewport{position:relative;flex:1;min-height:0;overflow:hidden}
+.page{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;background:var(--bg);-webkit-overflow-scrolling:touch;padding-bottom:110px}
+.page.push{animation:pushIn .34s cubic-bezier(.2,.8,.2,1)}
+.page.pop{animation:popIn .3s cubic-bezier(.2,.8,.2,1)}
+.page.fade{animation:fadeIn .18s ease}
+@keyframes pushIn{from{transform:translateX(100%);box-shadow:-10px 0 30px rgba(0,0,0,.12)}to{transform:none}}
+@keyframes popIn{from{transform:translateX(-28%);opacity:.6}to{transform:none;opacity:1}}
+@keyframes fadeIn{from{opacity:.4}to{opacity:1}}
+@media (prefers-reduced-motion:reduce){.page.push,.page.pop,.page.fade{animation:none}}
+.nav{position:sticky;top:0;z-index:10;background:var(--bg);transition:background .2s}
+.nav.solid{background:var(--bar);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);box-shadow:0 .5px 0 var(--sep)}
+.navrow{height:44px;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;padding:0 8px;padding-top:env(safe-area-inset-top,0px);box-sizing:content-box}
+@media (min-width:521px){.navrow{padding-top:0}}
+.navrow .t{font-weight:600;font-size:17px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;opacity:0;transition:opacity .15s}
+.nav.solid .navrow .t,.nav.small .navrow .t{opacity:1}
+.back{display:flex;align-items:center;gap:2px;color:var(--accent);font-size:17px;justify-self:start;padding:6px 4px;max-width:150px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.back svg{flex:none}
+.navbtn{justify-self:end;color:var(--accent);font-size:17px;padding:6px 8px;font-weight:400}
+.navbtn.b{font-weight:600}
+.largetitle{font:700 34px/1.12 var(--sans);letter-spacing:.01em;padding:2px 16px 8px;margin:0}
+
+/* ---------- tab bar ---------- */
+.tabbar{position:absolute;left:0;right:0;bottom:0;z-index:25;display:grid;grid-template-columns:repeat(5,1fr);padding:6px 4px calc(26px + env(safe-area-inset-bottom,0px));background:var(--bar);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);box-shadow:0 -.5px 0 var(--sep)}
+@media (max-width:520px){.tabbar{padding-bottom:max(8px,env(safe-area-inset-bottom,0px))}}
+.tabbar button{display:flex;flex-direction:column;align-items:center;gap:2px;color:var(--fg2);font-size:10.5px;font-weight:500;letter-spacing:.01em;padding-top:2px}
+.tabbar button svg{width:27px;height:27px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.tabbar button[aria-selected="true"]{color:var(--accent)}
+.tabbar button[aria-selected="true"] svg{fill:var(--accent-soft)}
+
+/* ---------- content primitives ---------- */
+.sec{display:flex;flex-direction:column}
+.sh{font-size:13px;color:var(--fg2);text-transform:uppercase;letter-spacing:.02em;padding:22px 32px 7px}
+.sh.big{font:700 20px var(--sans);text-transform:none;color:var(--fg);letter-spacing:0;padding:24px 20px 8px}
+.sf{font-size:13px;color:var(--fg2);padding:7px 32px 0;line-height:1.4}
+.group{background:var(--card);border-radius:12px;margin:0 16px;overflow:hidden}
+.cell{display:flex;align-items:center;gap:12px;padding:11px 16px;min-height:44px;position:relative;width:100%;text-align:left}
+.cell+.cell::before,.cell+.block::before,.block+.cell::before,.block+.block::before{content:"";position:absolute;top:0;left:16px;right:0;height:.5px;background:var(--sep)}
+.cell.icon+.cell.icon::before{left:60px}
+button.cell:active,.cell.tap:active{background:var(--fill)}
+.cell .main{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.cell .ttl{font-size:17px;overflow-wrap:anywhere}
+.cell .sub{font-size:14px;color:var(--fg2);overflow-wrap:anywhere}
+.cell .val{color:var(--fg2);font-size:17px;white-space:nowrap;font-variant-numeric:tabular-nums}
+.chev{flex:none;width:8px;height:14px;stroke:var(--fg3);stroke-width:2.2;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.ico{flex:none;width:30px;height:30px;border-radius:7px;display:grid;place-items:center;color:#fff}
+.ico svg{width:18px;height:18px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.block{padding:14px 16px;position:relative;display:flex;flex-direction:column;gap:10px}
+.prose{font-size:16px;line-height:1.5;white-space:pre-wrap;overflow-wrap:anywhere}
+.serif{font-family:"New York",ui-serif,Georgia,serif}
+.small{font-size:14px}.muted{color:var(--fg2)}
+.chips{display:flex;gap:8px;overflow-x:auto;padding:4px 16px 6px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;font-size:15px;padding:6px 14px;border-radius:999px;background:var(--fill);color:var(--fg);font-weight:500}
+.chip[aria-pressed="true"]{background:var(--accent);color:var(--on-accent)}
+.tag{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;padding:2px 8px;border-radius:999px;white-space:nowrap;background:color-mix(in srgb,var(--cc,var(--fg2)) 14%,transparent);color:var(--cc,var(--fg2))}
+.tag.plain{background:var(--fill);color:var(--fg2)}
+.tag.bad{--cc:var(--red)}.tag.warn{--cc:var(--orange)}.tag.good{--cc:var(--green)}
+.row{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.dot{width:10px;height:10px;border-radius:50%;flex:none;background:var(--fill2)}
+.dot.draft{background:var(--orange)}.dot.solid{background:var(--green)}
+.seg{display:flex;background:var(--fill);border-radius:9px;padding:2px;margin:0 16px}
+.seg button{flex:1;font-size:13px;font-weight:500;padding:6px 4px;border-radius:7px;white-space:nowrap}
+.seg button[aria-pressed="true"]{background:var(--card);box-shadow:0 3px 8px rgba(0,0,0,.12),0 0 0 .5px rgba(0,0,0,.04);font-weight:600}
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;width:calc(100% - 32px);margin:0 16px;min-height:50px;border-radius:14px;background:var(--accent);color:var(--on-accent);font-size:17px;font-weight:600}
+.btn:active{opacity:.8}
+.btn.tint{background:var(--accent-soft);color:var(--accent)}
+.btn[disabled]{opacity:.55;cursor:default}
+.btns{display:flex;flex-direction:column;gap:10px;padding-top:16px}
+.linkbtn{color:var(--accent);font-size:17px}
+.search{margin:0 16px 4px;display:flex;align-items:center;gap:6px;background:var(--fill);border-radius:10px;padding:7px 8px;color:var(--fg2)}
+.search input{border:0;background:transparent;outline:0;flex:1;min-width:0;font-size:17px;color:var(--fg)}
+.search svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2.2}
+textarea.field,input.field{width:100%;border:0;background:transparent;outline:0;font-size:16px;line-height:1.5;resize:none;padding:0}
+textarea.field{min-height:150px}
+.qbox{max-height:220px;overflow:auto}
+.spin{width:18px;height:18px;border-radius:50%;border:2.5px solid color-mix(in srgb,currentColor 30%,transparent);border-top-color:currentColor;animation:sp .8s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+.timer{font:600 17px var(--mono);font-variant-numeric:tabular-nums;color:var(--accent)}
+.timer.over{color:var(--red)}
+
+/* score bits */
+.hero{margin:0 16px;background:var(--card);border-radius:16px;padding:18px 16px;display:flex;flex-direction:column;gap:12px}
+.hero .verdict{font:500 19px/1.35 "New York",ui-serif,Georgia,serif;text-wrap:pretty}
+.hero .eb{font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--fg2)}
+.ring{display:flex;align-items:center;gap:14px}
+.ring svg{flex:none}
+.ring .big{font:700 30px var(--round);font-variant-numeric:tabular-nums}
+.meters{display:grid;grid-template-columns:1fr 1fr;gap:10px 16px}
+.mtr{display:flex;flex-direction:column;gap:4px;font-size:13px}
+.mtr .l{display:flex;justify-content:space-between;color:var(--fg2)}
+.mtr .l b{color:var(--fg);font-variant-numeric:tabular-nums}
+.bar{height:6px;border-radius:3px;background:var(--fill);overflow:hidden}
+.bar i{display:block;height:100%;border-radius:3px;background:var(--accent)}
+.bar.lo i{background:var(--red)}.bar.mid i{background:var(--orange)}
+.note{border-radius:10px;padding:10px 12px;font-size:15px;line-height:1.45;display:flex;flex-direction:column;gap:3px}
+.note.ok{background:var(--green-soft)}.note.bad{background:var(--red-soft)}.note.info{background:var(--accent-soft)}.note.warn{background:var(--orange-soft)}
+.note q{font-style:italic;color:var(--fg2);quotes:none}
+.rewrite{border:1.5px dashed color-mix(in srgb,var(--accent) 55%,transparent);border-radius:12px;padding:12px;font:16px/1.6 "New York",ui-serif,Georgia,serif;white-space:pre-wrap}
+.el{display:flex;gap:8px;font-size:14px;line-height:1.4}
+.el .m{flex:none;width:18px;text-align:center;font-weight:700}
+.m.yes{color:var(--green)}.m.thin{color:var(--orange)}.m.no{color:var(--red)}
+.tw{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{text-align:left;padding:8px 6px;border-top:.5px solid var(--sep);vertical-align:top}
+th{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--fg2);border-top:0}
+td.n{font-variant-numeric:tabular-nums;white-space:nowrap;font-weight:600}
+td.n.lo{color:var(--red)}
+.ann{font:16px/2 "New York",ui-serif,Georgia,serif}
+.ann span{padding:2px 1px;border-radius:3px}
+.ann .I{background:var(--hl-i)}.ann .R{background:var(--hl-r)}.ann .A{background:var(--hl-a)}.ann .C{background:var(--hl-c)}.ann .X{background:var(--hl-x)}
+.legend{display:flex;flex-wrap:wrap;gap:6px;font-size:12px}
+.legend span{padding:2px 8px;border-radius:999px}
+.cmp{display:grid;grid-template-columns:22px 1fr 1fr;gap:6px 10px;font-size:14px}
+.cmp b{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--fg2);font-weight:600}
+.cmp .x{color:var(--red)}
+
+/* sheet + toast */
+.dim{position:absolute;inset:0;background:rgba(0,0,0,.36);z-index:50;animation:fadeIn .2s ease}
+.sheet{position:absolute;left:0;right:0;bottom:0;z-index:51;background:var(--bg);border-radius:14px 14px 0 0;max-height:88%;overflow:auto;padding-bottom:40px;animation:up .32s cubic-bezier(.2,.8,.2,1)}
+@keyframes up{from{transform:translateY(100%)}to{transform:none}}
+.grabber{width:36px;height:5px;border-radius:3px;background:var(--fill2);margin:6px auto 0}
+.toast{position:absolute;left:50%;bottom:104px;transform:translateX(-50%);z-index:60;background:color-mix(in srgb,var(--fg) 88%,transparent);color:var(--bg);font-size:14px;font-weight:500;padding:10px 16px;border-radius:999px;max-width:86%;text-align:center;animation:fadeIn .2s ease;pointer-events:none}
+.proto{display:flex;align-items:center;gap:8px;margin:0 16px 4px;font-size:12.5px;color:var(--fg2)}
+.proto i{width:7px;height:7px;border-radius:50%;background:var(--orange);flex:none}
+.empty{padding:28px 32px;text-align:center;color:var(--fg2);font-size:15px}
+/* center tab */
+.tabbar .ctr{position:relative}
+.tabbar .ctr .fab{width:54px;height:54px;margin-top:-26px;border-radius:50%;background:var(--accent);display:grid;place-items:center;box-shadow:0 6px 16px -4px color-mix(in srgb,var(--accent) 60%,transparent),0 0 0 4px var(--bar)}
+.tabbar .ctr .fab svg{width:26px;height:26px;stroke:var(--on-accent);fill:none}
+.tabbar .ctr[aria-selected="true"] svg{fill:none}
+.soon{position:absolute;top:-30px;left:50%;margin-left:12px;font:700 8.5px var(--sans);letter-spacing:.06em;text-transform:uppercase;background:var(--orange);color:#fff;padding:2px 5px;border-radius:999px;box-shadow:0 0 0 2px var(--bar)}
+.soonbar{display:flex;gap:10px;align-items:center;margin:4px 16px 0;padding:10px 12px;border-radius:12px;background:var(--orange-soft);font-size:14px;line-height:1.35}
+.soonbar b{color:var(--orange)}
+.preview{position:relative}
+.preview::after{content:"";position:absolute;inset:0;background:linear-gradient(to bottom,transparent 40%,var(--bg));pointer-events:none}
+.navlead{justify-self:start;color:var(--accent);padding:6px 8px;display:grid;place-items:center}
+.navlead svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+/* action sheet */
+.asheet{position:absolute;left:8px;right:8px;bottom:30px;z-index:51;display:flex;flex-direction:column;gap:8px;animation:up .3s cubic-bezier(.2,.8,.2,1)}
+.asheet .g{background:var(--bar);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-radius:14px;overflow:hidden}
+.asheet .hd{padding:12px 16px;text-align:center;font-size:13px;color:var(--fg2)}
+.asheet button{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:56px;font-size:19px;color:var(--accent);border-top:.5px solid var(--sep)}
+.asheet button.cx{font-weight:600;border-top:0}
+/* files + extraction */
+.fi{flex:none;width:34px;height:42px;border-radius:5px;display:grid;place-items:end center;padding-bottom:5px;font:800 9px var(--sans);color:#fff;position:relative}
+.fi::before{content:"";position:absolute;top:0;right:0;width:10px;height:10px;background:linear-gradient(225deg,var(--card) 50%,rgba(0,0,0,.18) 50%)}
+.fi.pdf{background:#D93A2B}.fi.docx{background:#2B5FA8}.fi.txt{background:#6B7280}.fi.img{background:#8447B5}
+.steps{display:flex;flex-direction:column;gap:10px}
+.stp{display:flex;gap:10px;align-items:center;font-size:15px;color:var(--fg3)}
+.stp .k{width:22px;height:22px;border-radius:50%;border:2px solid var(--fill2);display:grid;place-items:center;flex:none;font-size:12px;font-weight:800}
+.stp.done{color:var(--fg)}.stp.done .k{background:var(--green);border-color:var(--green);color:#fff}
+.stp.now{color:var(--fg)}.stp.now .k{border-color:var(--accent);border-top-color:transparent;animation:sp .8s linear infinite}
+.prog{height:4px;border-radius:2px;background:var(--fill);overflow:hidden}.prog i{display:block;height:100%;background:var(--accent);transition:width .4s}
+.snip{font:14px/1.5 "New York",ui-serif,Georgia,serif;color:var(--fg2);border-left:3px solid var(--sep);padding-left:10px;max-height:66px;overflow:hidden}
+.hlx{background:var(--hl-i);border-radius:3px;padding:0 2px;color:var(--fg)}
+.kv{display:grid;grid-template-columns:auto 1fr auto;gap:8px 12px;font-size:15px;align-items:center}
+.kv span:nth-child(3n+1){color:var(--fg2)}
+.conf{font:600 12px var(--mono);color:var(--green)}.conf.mid{color:var(--orange)}
+.minis{display:flex;gap:4px;flex-wrap:wrap}.minis button{font-size:12px;padding:4px 9px;border-radius:999px;background:var(--fill);font-weight:500}
+.minis button[aria-pressed="true"]{background:var(--accent);color:var(--on-accent)}
+</style>
+
+<div class="stage">
+  <div class="aside">
+    <span class="badge">Clickable prototype</span>
+    <h1>Law Hub for iPhone</h1>
+    <p>Practice exams, a 15‑minute issue‑spotting drill, rule writing with feedback, a rule bank, and model‑answer comparison.</p>
+    <ul>
+      <li>Every screen is filled with sample data.</li>
+      <li>Grading is simulated. Nothing is sent anywhere and nothing is saved.</li>
+      <li>Reload the page to reset.</li>
+    </ul>
+  </div>
+  <div class="phone" id="phone">
+    <div class="screen" id="screen">
+      <div class="island" aria-hidden="true"></div>
+      <div class="sbar" aria-hidden="true"><span>9:41</span><span class="ic">
+        <svg width="18" height="12" viewBox="0 0 18 12"><rect x="0" y="8" width="3" height="4" rx="1"/><rect x="5" y="5.5" width="3" height="6.5" rx="1"/><rect x="10" y="3" width="3" height="9" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></svg>
+        <svg width="16" height="12" viewBox="0 0 16 12"><path d="M8 2.2c2.3 0 4.4.9 6 2.4l1.1-1.2A10.2 10.2 0 0 0 8 .6C5.3.6 2.8 1.6.9 3.4L2 4.6a8.6 8.6 0 0 1 6-2.4zm0 3.3c1.4 0 2.7.5 3.7 1.4l1.1-1.2A7 7 0 0 0 8 3.9a7 7 0 0 0-4.8 1.8l1.1 1.2c1-.9 2.3-1.4 3.7-1.4zm0 3.3c-.6 0-1.2.2-1.6.6L8 11.4l1.6-2c-.4-.4-1-.6-1.6-.6z"/></svg>
+        <svg width="27" height="13" viewBox="0 0 27 13"><rect x=".5" y=".5" width="23" height="12" rx="3.5" fill="none" stroke="currentColor" opacity=".4"/><rect x="2" y="2" width="18" height="9" rx="2"/><rect x="24.5" y="4.5" width="1.6" height="4" rx=".8" opacity=".45"/></svg>
+      </span></div>
+      <div class="viewport" id="viewport"></div>
+      <nav class="tabbar" id="tabbar" role="tablist" aria-label="Sections"></nav>
+      <div class="homebar" aria-hidden="true"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* =====================================================================
+   LAW HUB · iOS PROTOTYPE
+   Non-working by design: no network calls, no storage, no AI.
+   All content lives in the DATA section below. Edit it to change the demo.
+   ===================================================================== */
+
+/* ---------- tiny helpers ---------- */
+const $ = (s, r = document) => r.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const wc = t => (String(t || '').trim().match(/\S+/g) || []).length;
+const CHEV = '<svg class="chev" viewBox="0 0 8 14"><path d="M1.5 1.5 6.5 7l-5 5.5"/></svg>';
+const BACK = '<svg width="13" height="21" viewBox="0 0 13 21" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M10.5 2 2.5 10.5l8 8.5"/></svg>';
+
+/* =====================================================================
+   DATA — all fictional sample content
+   ===================================================================== */
+const COURSES = {
+  con: {name: 'Contracts', color: 'var(--c-con)'},
+  tor: {name: 'Torts', color: 'var(--c-tor)'},
+  civ: {name: 'Civil Procedure', color: 'var(--c-civ)'}
+};
+
+const FB_BAKERY = {
+  oneLine: 'Strong formation analysis. Promissory estoppel only argues Alexander’s side, and damages are missing entirely.',
+  basis: 'scoresheet',
+  scores: {issueSpotting: 4, application: 3, bothSides: 2, organization: 4, terminology: 3},
+  rubric: [
+    {item: 'Flyer: offer or invitation to deal', max: 10, earned: 9, why: 'Named the general rule and the Lefkowitz-style exception; tied “first 3” to definiteness.'},
+    {item: 'Acceptance by performance', max: 8, earned: 7, why: 'Correct; notice of performance stated but not applied.'},
+    {item: 'Consideration', max: 6, earned: 5, why: 'Bargained-for detriment shown with the design work.'},
+    {item: 'Revocation after performance began', max: 6, earned: 4, why: 'Missed the option-contract rule (Rest. 2d §45).'},
+    {item: 'Promissory estoppel (alternative)', max: 10, earned: 6, why: 'Reliance shown; Samantha’s side never argued.'},
+    {item: 'Expectation vs. reliance damages', max: 5, earned: 0, why: 'Not discussed.'}
+  ],
+  issues: [
+    {issue: 'Offer vs. invitation to deal', status: 'spotted', both: true, els: [['Definite terms', 'yes', '“3-tier”, “free”, “$200 gift card”.'], ['Limited quantity', 'yes', '“First 3” closes the gap.'], ['Reasonable reader’s view', 'thin', 'Say how Alexander would read it.']], fix: 'Good. Add one line on the reasonable-reader test.'},
+    {issue: 'Acceptance by performance', status: 'spotted', both: true, els: [['Performance begun', 'yes', 'Two days drafting.'], ['Notice', 'thin', 'He arrived March 10. Use that fact.']], fix: 'Apply notice with the March 10 visit.'},
+    {issue: 'Revocation / option contract', status: 'partial', both: false, els: [['Beginning of performance', 'yes', ''], ['Option created (§45)', 'no', 'Not named.']], fix: 'Once performance began, Samantha could not revoke.'},
+    {issue: 'Promissory estoppel', status: 'partial', both: false, els: [['Promise', 'yes', ''], ['Reasonable, foreseeable reliance', 'thin', 'Cancelling a $1,400 order is the key fact.'], ['Injustice only avoided by enforcement', 'no', 'Not addressed.']], fix: 'Argue Samantha’s side: a promotion invites no reliance of this size.'},
+    {issue: 'Damages', status: 'missed', both: false, els: [['Expectation ($1,900 cover − $0 + gift card)', 'no', ''], ['Reliance (design time, lost order)', 'no', '']], fix: 'Add a short damages block. It was worth 5 points.'}
+  ],
+  bothSidesMissing: ['Samantha: the oven breaking made performance impracticable.', 'Samantha: reliance on a free-cake flyer by cancelling a $1,400 order was not reasonable.'],
+  organization: {pattern: 'By issue', note: 'Clear headings. Promissory estoppel should come after the contract analysis, as an alternative.', outline: [['Formation', ['Offer', 'Acceptance by performance', 'Consideration']], ['Revocation', ['Option contract under §45']], ['Defenses', ['Impracticability: broken oven']], ['Alternative: promissory estoppel', ['Promise', 'Reliance', 'Injustice']], ['Remedies', ['Expectation', 'Reliance']]]},
+  working: ['Every issue has a heading and a one-sentence rule.', 'You quote the flyer’s exact words when applying definiteness.'],
+  terms: [['she agreed to the deal', 'manifestation of mutual assent', 'Use the term of art for formation.'], ['it was only fair', 'injustice can be avoided only by enforcement', 'This is the §90 element, word for word.'], ['the ad was like a promise', 'a sufficiently definite offer', 'Names the exception you are invoking.']],
+  weakest: {section: 'Promissory estoppel', why: 'One-sided, and the third element is missing.', rewrite: 'Alternatively, Alexander may recover under promissory estoppel (Rest. 2d §90). Samantha promised a free cake and a $200 gift card. Alexander will argue his reliance was foreseeable: the flyer targeted wedding customers, and cancelling another order is the natural response. Samantha will respond that no reasonable person cancels a $1,400 order on the strength of a promotional flyer. Because the flyer limited the offer to three people and set a date, reliance was likely reasonable. Injustice can be avoided only by enforcement to the extent of his reliance, so recovery may be limited to his lost deposit and design time.'},
+  tags: ['one-sided', 'missed-issue']
+};
+
+const FB_SKI = {
+  oneLine: 'Negligence is well built. The waiver and Theo’s emotional-distress claim need both sides.',
+  basis: 'scoresheet',
+  scores: {issueSpotting: 4, application: 4, bothSides: 3, organization: 3, terminology: 4},
+  rubric: [
+    {item: 'Negligence: duty and breach (wind policy)', max: 12, earned: 11, why: 'Excellent use of the written policy.'},
+    {item: 'Causation and damages', max: 8, earned: 6, why: 'Proximate cause stated, not argued.'},
+    {item: 'Respondeat superior', max: 6, earned: 6, why: 'Complete.'},
+    {item: 'Waiver: minor, scope, public policy', max: 10, earned: 5, why: 'Missed that Maya is 16.'},
+    {item: 'Theo: bystander NIED', max: 8, earned: 3, why: 'Did not apply the Thing v. La Chusa factors.'}
+  ],
+  issues: [
+    {issue: 'Negligence against Pine Ridge', status: 'spotted', both: true, els: [['Duty', 'yes', ''], ['Breach', 'yes', 'Wind policy ignored.'], ['Causation', 'thin', ''], ['Damages', 'yes', '']], fix: 'Argue foreseeability of a chair detaching in high wind.'},
+    {issue: 'Vicarious liability for Dev', status: 'spotted', both: true, els: [['Employee', 'yes', ''], ['Scope of employment', 'yes', 'Clearing a line serves the employer.']], fix: ''},
+    {issue: 'Season-pass waiver', status: 'partial', both: false, els: [['Minor signatory', 'no', 'Maya is 16.'], ['Scope: gross negligence', 'thin', ''], ['Public-policy exception', 'no', '']], fix: 'A minor can usually disaffirm. Lead with that.'},
+    {issue: 'Theo: bystander emotional distress', status: 'partial', both: false, els: [['Close relationship', 'no', 'A friend is not a close relative.'], ['Present at the scene', 'thin', ''], ['Serious distress', 'yes', '']], fix: 'The relationship element likely defeats the claim. Say so.'}
+  ],
+  bothSidesMissing: ['Resort: the waiver is clear and Maya’s parent may have co-signed.'],
+  organization: {pattern: 'Mixed', note: 'You start chronologically, then switch to issues. Put a heading on each claim.', outline: [['Maya v. Pine Ridge', ['Negligence', 'Respondeat superior', 'Waiver defense']], ['Theo v. Pine Ridge', ['Bystander NIED']]]},
+  working: ['Breach is argued with the resort’s own wind policy, which is exactly the right fact.'],
+  terms: [['the boss is responsible', 'respondeat superior', ''], ['he got upset watching', 'bystander negligent infliction of emotional distress', '']],
+  weakest: {section: 'Season-pass waiver', why: 'Never mentions that Maya is a minor.', rewrite: 'Pine Ridge will raise the season-pass waiver as a complete defense. Maya will respond that, at 16, she lacked capacity and may disaffirm the release. Even if a parent co-signed, many courts refuse to enforce pre-injury releases for gross negligence, and running a lift against a written wind policy is arguably gross. The waiver therefore likely fails.'},
+  tags: ['one-sided']
+};
+
+const FB_LIGHT = (one, sc, tags) => ({oneLine: one, basis: 'issues', scores: sc, rubric: [], issues: [], working: [], terms: [], tags});
+
+const BUNDLES = [
+  {id: 'b1', course: 'con', title: 'Midterm 2025 · The Bakery Flyer', rubric: true, sources: [['Contracts_Midterm_2025.pdf', 'pdf', 'Question · 1 page of 4'], ['Midterm_scoresheet.docx', 'docx', 'Scoresheet · 6 items, 45 pts'], ['Sample_answers_A.pdf', 'pdf', '3 model answers'], ['my_answer_oct28.txt', 'txt', 'Attempt · Oct 28']], models: ['Sample 1 · A answer', 'Sample 2 · A− answer', 'Sample 3 · B+ answer'],
+   question: 'Samantha owns Crumb & Co., a bakery. On March 1 she posts a flyer: “First 3 customers who bring a 3‑tier wedding cake design by March 15 get it baked FREE, plus a $200 gift card for the reception!”\n\nAlexander, a wedding planner, sees the flyer, cancels a $1,400 order with another bakery, and spends two days drafting a design. He arrives on March 10 and is the first to respond. Samantha tells him the promotion is “over” because her oven broke, and offers 20% off instead. Alexander buys a cake elsewhere for $1,900.\n\nDiscuss Alexander’s claims against Samantha.',
+   attempts: [
+     {id: 'a2', date: 'Oct 28', mins: 58, words: 1240, score: '31/45', fb: FB_BAKERY},
+     {id: 'a1', date: 'Oct 14', mins: 61, words: 980, score: '24/45', fb: FB_LIGHT('Formation is solid, but you narrate the facts in order and never reach promissory estoppel or damages.', {issueSpotting: 3, application: 2, bothSides: 2, organization: 2, terminology: 3}, ['chronological', 'missed-issue'])}
+   ]},
+  {id: 'b2', course: 'tor', title: 'Final 2024 · The Chairlift', rubric: true, models: ['Sample 1 · A answer', 'Sample 2 · A answer'],
+   question: 'Pine Ridge Resort runs a chairlift that is inspected every year. During a storm, the operator, Dev, keeps the lift running against the resort’s written wind policy so he can clear the line. A chair detaches and Maya, 16, is badly injured. Her friend Theo watches from the base lodge and later suffers panic attacks.\n\nMaya had signed a season‑pass waiver releasing the resort “from all claims of any kind.”\n\nDiscuss all claims and defenses.',
+   attempts: [{id: 'a3', date: 'Nov 2', mins: 72, words: 1510, score: '31/44', fb: FB_SKI}]},
+  {id: 'b3', course: 'civ', title: 'Practice · WidgetCo in Oregon', rubric: false, models: ['Sample 1 · posted by the course'],
+   question: 'WidgetCo, a Delaware corporation headquartered in Texas, sells smart thermostats through a nationwide website and through a distributor in Idaho. An Oregon resident buys one from a hardware store in Portland. It overheats and starts a fire.\n\nThe Oregon resident sues WidgetCo in Oregon state court. WidgetCo moves to dismiss for lack of personal jurisdiction.\n\nDiscuss.',
+   attempts: []},
+  {id: 'b4', course: 'con', title: 'Final 2023 · The Vintage Guitar', rubric: false, models: [],
+   question: 'Lena texts Omar: “I’ll sell you my 1962 guitar for $9,000, delivery in 30 days.” Omar replies “Deal.” Two weeks later a collector offers Lena $14,000. Lena texts Omar that she “can’t go through with it.”\n\nDiscuss Omar’s rights and remedies.',
+   attempts: [{id: 'a4', date: 'Sep 30', mins: 45, words: 860, score: '64%', fb: FB_LIGHT('Good on the Statute of Frauds and UCC 2‑201. Specific performance needs the “unique goods” argument from both sides.', {issueSpotting: 4, application: 3, bothSides: 2, organization: 4, terminology: 3}, ['one-sided'])}]}
+];
+
+const SAMPLE_ANSWER = 'ISSUE 1: Was the flyer an offer?\nGenerally, advertisements are invitations to deal, not offers. But an ad is an offer when it is clear, definite and explicit and leaves nothing open for negotiation.\n\nHere, the flyer limits the deal to the “first 3 customers,” names the product (a 3-tier wedding cake), the price (free) and a deadline (March 15). Samantha will argue it was a promotion and that no reasonable reader would think she was bound…';
+
+const DRILLS = [
+  {id: 'd1', bundle: 'b1', date: 'Nov 6', pct: 74, spot: 5, out: 10},
+  {id: 'd2', bundle: 'b2', date: 'Nov 1', pct: 61, spot: 6, out: 11}
+];
+const DRILL_ISSUES = 'Flyer: offer or invitation to deal?\nAcceptance by performance + notice\nRevocation once performance began\nConsideration\nPromissory estoppel (alternative)\nImpracticability: the broken oven';
+const DRILL_OUTLINE = 'I. FORMATION\nRule: ads = invitations, unless definite + limited (Lefkowitz)\n 1. Definite: 3-tier, free, $200 card  ↔  S: promo puffery\n 2. Limited: “first 3”  ↔  S: no quantity of cakes\nII. ACCEPTANCE BY PERFORMANCE (§50, §54 notice)\n …\nIII. PROMISSORY ESTOPPEL §90\n Promise / reliance ($1,400 order cancelled) / injustice';
+const DRILL_FB = {
+  oneLine: 'You spotted five of six issues in time. Damages never made the list, and two outline blocks have no “against” facts.',
+  scores: {issueSpotting: 4, ruleElements: 4, authority: 3, bothSides: 3, prioritization: 4},
+  issues: [['Offer vs. invitation to deal', 'spotted', '10'], ['Acceptance by performance', 'spotted', '8'], ['Revocation / §45 option', 'spotted', '6'], ['Consideration', 'spotted', '6'], ['Promissory estoppel', 'partial', '10'], ['Damages', 'missed', '5']],
+  check: [['Formation', 'yes', 'yes', 'yes', 'yes', 'Good.'], ['Acceptance', 'yes', 'thin', 'yes', 'no', 'Add Samantha’s notice argument.'], ['Promissory estoppel', 'thin', 'yes', 'yes', 'no', 'List one fact against reliance.']],
+  next: ['End the spotting list with “Remedies” every time, as a habit.', 'For each element write one fact FOR and one AGAINST before moving on.', 'Spend about 1 minute per 5 rubric points when you outline.']
+};
+
+const LEVELS = [
+  {n: 1, t: 'Rule', s: 'In your words'},
+  {n: 2, t: 'Elements', s: 'Numbered'},
+  {n: 3, t: 'Apply', s: 'Both sides'},
+  {n: 4, t: 'Full', s: 'Whole essay'}
+];
+const WRITE_TEXT = {
+  1: 'A promise the promisor should reasonably expect to cause action by the promisee, and which does cause that action, is binding if injustice can only be avoided by enforcing it.',
+  2: 'Promissory estoppel (Rest. 2d §90):\n1. A promise;\n2. The promisor should reasonably expect it to induce action or forbearance;\n3. It does induce that action;\n4. Injustice can be avoided only by enforcement.',
+  3: 'Reliance. Alexander will argue his reliance was foreseeable because the flyer targeted wedding customers and set a deadline. He cancelled a $1,400 order. Samantha will say…',
+  4: SAMPLE_ANSWER
+};
+const WRITE_FB = {
+  oneLine: 'Accurate and nearly complete. Tighten the reliance element and name the remedy limit.',
+  scores: [['Accuracy', 5], ['Completeness', 4], ['Terms', 4]],
+  working: ['All four elements are present and in the Restatement’s order.'],
+  notWorking: [{issue: 'Remedy not stated', quote: 'is binding if injustice can only be avoided', fix: 'Add: “The remedy may be limited as justice requires.”'}, {issue: 'Reliance is described loosely', quote: 'does cause that action', fix: 'Write “induces action or forbearance of a definite and substantial character”.'}],
+  missing: ['Remedy limited as justice requires (§90(1), last sentence)'],
+  terms: [['cause action', 'induce action or forbearance', 'Restatement wording.']],
+  rewrite: 'Under Restatement (Second) of Contracts §90, a promise is binding without consideration when:\n(1) the promisor made a promise;\n(2) the promisor should reasonably expect it to induce action or forbearance;\n(3) it does induce such action or forbearance; and\n(4) injustice can be avoided only by enforcement.\nThe remedy may be limited as justice requires.'
+};
+
+const RULES = [
+  {id: 'r1', course: 'con', title: 'Offer', st: 'solid', ref: 'A manifestation of willingness to enter into a bargain, so made as to justify another person in understanding that his assent is invited and will conclude it. Rest. 2d §24.', mine: 'An offer is a definite proposal that a reasonable person would understand as inviting acceptance that closes the deal.'},
+  {id: 'r2', course: 'con', title: 'Advertisements as offers', st: 'draft', ref: 'Advertisements are generally invitations to deal, but an ad is an offer when it is clear, definite and explicit and leaves nothing open for negotiation (e.g., limited quantity, “first come, first served”).', mine: ''},
+  {id: 'r3', course: 'con', title: 'Promissory estoppel', st: 'solid', ref: 'A promise which the promisor should reasonably expect to induce action or forbearance on the part of the promisee and which does induce such action or forbearance is binding if injustice can be avoided only by enforcement. Rest. 2d §90.', mine: WRITE_TEXT[2]},
+  {id: 'r4', course: 'con', title: 'Option by part performance', st: 'none', ref: 'Where an offer invites acceptance only by performance, an option contract is created when the offeree begins the invited performance. Rest. 2d §45.', mine: ''},
+  {id: 'r5', course: 'con', title: 'Statute of Frauds · UCC 2‑201', st: 'draft', ref: 'A contract for the sale of goods for $500 or more is not enforceable unless there is a writing sufficient to indicate a contract, signed by the party against whom enforcement is sought.', mine: ''},
+  {id: 'r6', course: 'tor', title: 'Negligence', st: 'solid', ref: 'Duty, breach, actual cause, proximate cause, damages.', mine: 'Duty of reasonable care; breach of that duty; the breach caused the harm in fact and proximately; actual damages.'},
+  {id: 'r7', course: 'tor', title: 'Respondeat superior', st: 'solid', ref: 'An employer is vicariously liable for torts an employee commits within the scope of employment.', mine: ''},
+  {id: 'r8', course: 'tor', title: 'Bystander NIED', st: 'draft', ref: 'A bystander may recover for emotional distress if closely related to the victim, present at the scene and aware of the injury, and suffers serious distress (Thing v. La Chusa).', mine: ''},
+  {id: 'r9', course: 'tor', title: 'Exculpatory agreements', st: 'none', ref: 'Pre-injury releases are construed strictly; they are generally unenforceable for gross negligence or where they violate public policy.', mine: ''},
+  {id: 'r10', course: 'civ', title: 'Specific personal jurisdiction', st: 'draft', ref: 'Defendant must have purposefully availed itself of the forum; the claim must arise out of or relate to those contacts; and jurisdiction must be fair and reasonable (Ford Motor v. Montana Eighth Judicial Dist.).', mine: ''},
+  {id: 'r11', course: 'civ', title: 'General jurisdiction', st: 'none', ref: 'A corporation is “at home” in its state of incorporation and principal place of business (Daimler AG v. Bauman).', mine: ''}
+];
+
+const COMPARE = {
+  oneLine: 'The models open with a roadmap and argue each element both ways. Your answer argues both sides only on formation.',
+  modelsDo: [['Issue order', 'Formation, then defenses, then alternatives, then remedies.', 'All 3'], ['Rule phrasing', 'Rule cites the Restatement section in the first sentence.', 'Samples 1, 2'], ['Both sides', 'Every element ends with “Samantha will respond…”.', 'All 3'], ['Fact use', 'Quotes the flyer’s words in each element.', 'Samples 1, 3'], ['Terms of art', 'Uses “option contract”, “reliance interest”.', 'All 3']],
+  orderModels: ['Formation', 'Revocation & option', 'Impracticability', 'Promissory estoppel', 'Damages'],
+  orderMine: ['Formation', 'Promissory estoppel', 'Revocation', '—', '—'],
+  changes: ['Start with a two-line roadmap naming every claim.', 'Put promissory estoppel after the contract analysis, labeled “Alternatively”.', 'Add an impracticability defense for the broken oven.', 'End each element with the other side’s best response.', 'Close with a damages paragraph, even a short one.']
+};
+
+const TEARDOWN = {
+  title: 'Final 2022 Q1 · A+ answer', course: 'con',
+  verdict: 'It wins on organization: every issue gets a heading, a one-line rule with a source, and a for/against pair on each element. Conclusions are short and hedged.',
+  formula: 'Under [source], [party] must show [n] elements: (1) …, (2) …, (3) …. ',
+  checklist: ['Open with a roadmap naming every claim.', 'Give each issue a heading.', 'State the rule with its source in one sentence.', 'Number the elements.', 'Argue each element both ways with a quoted fact.', 'Conclude each element in one hedged sentence.'],
+  sentences: [['I', 'The first issue is whether the email of June 2 was an offer.'], ['R', 'Under Restatement §24, an offer is a manifestation of willingness to bargain that justifies the other party in believing assent will close the deal.'], ['A', 'Here, the email named a price, a quantity and a delivery date, which leaves nothing open.'], ['C', 'Seller will argue that “subject to availability” shows she did not intend to be bound.'], ['A', 'But the phrase concerned timing, not whether she would sell at all.'], ['X', 'The email was therefore likely an offer.']]
+};
+
+const PATTERNS = {
+  tags: [['one-sided', 9], ['missed-issue', 6], ['conclusory', 4], ['chronological', 3], ['wrong-term', 3], ['no-rule', 1]],
+  trend: [[ 'Sep 22', 52], ['Sep 30', 64], ['Oct 6', 58], ['Oct 14', 53], ['Oct 21', 66], ['Oct 28', 69], ['Nov 2', 70], ['Nov 6', 74]],
+  glossary: [['she agreed to the deal', 'manifestation of mutual assent', 'con'], ['it was only fair', 'injustice can be avoided only by enforcement', 'con'], ['the boss is responsible', 'respondeat superior', 'tor'], ['he got upset watching', 'bystander negligent infliction of emotional distress', 'tor'], ['the ad was like a promise', 'a sufficiently definite offer', 'con'], ['the court can hear it', 'the court has personal jurisdiction', 'civ']]
+};
+
+/* =====================================================================
+   STATE + NAVIGATION
+   Each tab owns a stack of screens, like UINavigationController.
+   ===================================================================== */
+const S = {
+  tab: 'exams',
+  stacks: {exams: [{v: 'exams'}], drill: [{v: 'drill'}], lab: [{v: 'lab'}], write: [{v: 'write'}], rules: [{v: 'rules'}]},
+  imp: null, pasted: null, bulkRules: null,
+  filter: 'all', ruleQ: '', ruleSt: 'all', level: 2, writeRule: 'r3',
+  drafts: {}, busy: null, timer: null, sheet: null, extraBundles: 0
+};
+const TABS = [
+  ['exams', 'Exams', '<path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5M10 13h6M10 17h6"/>'],
+  ['drill', 'Drill', '<circle cx="12" cy="13.5" r="7.5"/><path d="M12 9.5v4l2.5 2M10 2.8h4M12 3v3"/>'],
+  ['lab', 'Compare', '<path d="M4 6h6v13H4zM14 6h6v13h-6z"/><path d="M7 10h0M17 10h0"/>'],
+  ['write', 'Write', '<path d="M4 20h4L19 9l-4-4L4 16z"/><path d="m13.5 6.5 4 4"/>'],
+  ['rules', 'Rules', '<path d="M5 4.5A1.5 1.5 0 0 1 6.5 3H19v15H6.5A1.5 1.5 0 0 0 5 19.5z"/><path d="M5 19.5A1.5 1.5 0 0 0 6.5 21H19v-3"/><path d="M9 7.5h6"/>']
+];
+const PROGRESS_ICON = '<svg viewBox="0 0 24 24"><path d="M4 19V5M4 19h16M7 15l4-4 3 3 5-6"/></svg>';
+const stack = () => S.stacks[S.tab];
+const cur = () => stack()[stack().length - 1];
+function push(scr) { stopTimer(); if (S.imp && S.imp.step != null && scr.v !== 'extracted') S.imp = null; stack().push(scr); render('push'); }
+function pop() { stopTimer(); if (stack().length > 1) { stack().pop(); render('pop'); } }
+function switchTab(t) {
+  stopTimer();
+  if (t === S.tab) { if (stack().length > 1) { S.stacks[t] = [stack()[0]]; render('pop'); } else { const p = $('.page'); p && p.scrollTo({top: 0, behavior: 'smooth'}); } return; }
+  S.tab = t; render('fade');
+}
+
+/* ---------- timers (practice + drill) ---------- */
+function startTimer(secs) {
+  stopTimer();
+  S.timer = {left: secs, used: 0, h: setInterval(() => {
+    S.timer.left--; S.timer.used++;
+    const el = $('#clock'); if (el) { el.textContent = clock(S.timer.left); el.classList.toggle('over', S.timer.left <= 0); }
+  }, 1000)};
+}
+function stopTimer() { if (S.timer) clearInterval(S.timer.h); S.timer = null; }
+const clock = s => { const n = Math.abs(s); return (s < 0 ? '−' : '') + String(Math.floor(n / 60)).padStart(2, '0') + ':' + String(n % 60).padStart(2, '0'); };
+
+/* ---------- simulated grading ---------- */
+function fakeWork(key, ms, then) {
+  S.busy = key; render(null, true);
+  setTimeout(() => { S.busy = null; then(); }, ms);
+}
+function toast(msg) {
+  const old = $('.toast'); if (old) old.remove();
+  const t = document.createElement('div'); t.className = 'toast'; t.textContent = msg; t.setAttribute('role', 'status');
+  $('#screen').appendChild(t); setTimeout(() => t.remove(), 2400);
+}
+
+/* =====================================================================
+   UI BUILDING BLOCKS
+   ===================================================================== */
+const course = id => COURSES[id] || {name: 'Untagged', color: 'var(--fg2)'};
+const ctag = id => `<span class="tag" style="--cc:${course(id).color}">${esc(course(id).name)}</span>`;
+const bundle = id => BUNDLES.find(b => b.id === id);
+const findAttempt = id => { for (const b of BUNDLES) { const a = b.attempts.find(x => x.id === id); if (a) return [b, a]; } return []; };
+const sh = (t, big) => `<div class="sh${big ? ' big' : ''}">${t}</div>`;
+const sf = t => `<div class="sf">${t}</div>`;
+const group = inner => `<div class="group">${inner}</div>`;
+const cell = ({ttl, sub = '', val = '', a = '', data = '', chev = true, lead = ''}) =>
+  `<${a ? 'button' : 'div'} class="cell${lead ? ' icon' : ''}"${a ? ` data-a="${a}" ${data}` : ''}>${lead}<span class="main"><span class="ttl">${ttl}</span>${sub ? `<span class="sub">${sub}</span>` : ''}</span>${val ? `<span class="val">${val}</span>` : ''}${a && chev ? CHEV : ''}</${a ? 'button' : 'div'}>`;
+const block = inner => `<div class="block">${inner}</div>`;
+const proto = t => `<div class="proto"><i></i>${t}</div>`;
+function meter(label, v) { v = Math.max(0, Math.min(5, v)); return `<div class="mtr"><div class="l"><span>${label}</span><b>${v}/5</b></div><div class="bar ${v <= 2 ? 'lo' : v === 3 ? 'mid' : ''}"><i style="width:${v * 20}%"></i></div></div>`; }
+function ring(pct, label) {
+  const r = 26, c = 2 * Math.PI * r, col = pct < 55 ? 'var(--red)' : pct < 70 ? 'var(--orange)' : 'var(--green)';
+  return `<div class="ring"><svg width="64" height="64" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="${r}" fill="none" stroke="var(--fill)" stroke-width="7"/><circle cx="32" cy="32" r="${r}" fill="none" stroke="${col}" stroke-width="7" stroke-linecap="round" stroke-dasharray="${c * pct / 100} ${c}" transform="rotate(-90 32 32)"/></svg><div><div class="big">${label}</div><div class="small muted">${pct}% · sample estimate</div></div></div>`;
+}
+const STATUS = {spotted: ['Spotted', 'good'], partial: ['Partial', 'warn'], missed: ['Missed', 'bad']};
+const MARK = {yes: ['✓', 'yes'], thin: ['~', 'thin'], no: ['✗', 'no']};
+const mark = k => `<span class="m ${MARK[k][1]}">${MARK[k][0]}</span>`;
+const busyBtn = (key, label, busyLabel, tint) => `<button class="btn${tint ? ' tint' : ''}" data-a="${key}" ${S.busy ? 'disabled' : ''}>${S.busy === key ? `<span class="spin"></span>${busyLabel}` : label}</button>`;
+
+/* =====================================================================
+   SCREENS — each returns {title, large?, right?, body}
+   ===================================================================== */
+const V = {};
+
+/* ---- EXAMS ---- */
+V.exams = () => {
+  const list = BUNDLES.filter(b => S.filter === 'all' || b.course === S.filter);
+  const chips = [['all', 'All'], ...Object.entries(COURSES).map(([k, c]) => [k, c.name])].map(([k, l]) => `<button class="chip" data-a="filter" data-k="${k}" aria-pressed="${S.filter === k}">${l}</button>`).join('');
+  return {title: 'Exams', large: true, right: '<button class="navbtn" data-a="addMenu" aria-label="Add exam">＋</button>', body: `
+    ${proto('Prototype · sample data, nothing is saved')}
+    <div class="chips" role="group" aria-label="Course filter">${chips}</div>
+    ${sh('Exam bundles')}
+    ${list.length ? group(list.map(b => cell({ttl: esc(b.title), sub: `<span class="row">${ctag(b.course)}<span>${b.models.length} model${b.models.length === 1 ? '' : 's'} · ${b.attempts.length} attempt${b.attempts.length === 1 ? '' : 's'}</span></span>`, val: b.attempts[0] ? b.attempts[0].score : '', a: 'openBundle', data: `data-id="${b.id}"`})).join('')) : '<div class="empty">No exams for this course yet.</div>'}
+    ${sf('One bundle per exam: the question, the grader’s scoresheet (hidden until you submit), up to five model answers, and your attempts.')}`};
+};
+V.bundle = ({id}) => {
+  const b = bundle(id);
+  return {title: b.title, body: `
+    <div style="padding:6px 16px 4px" class="row">${ctag(b.course)}<span class="tag plain">${b.rubric ? 'Scoresheet saved' : 'No scoresheet'}</span><span class="tag plain">${wc(b.question)} words</span></div>
+    <h2 class="largetitle" style="font-size:26px;padding-top:6px">${esc(b.title)}</h2>
+    ${sh('Question')}${group(block(`<div class="prose serif qbox">${esc(b.question)}</div>`))}
+    <div class="btns"><button class="btn" data-a="practice" data-id="${b.id}">Practice this exam</button><button class="btn tint" data-a="toLab">Models &amp; compare <span class="tag warn">Soon</span></button></div>
+    ${b.sources ? sh('Extracted from ' + b.sources.length + ' files') + group(b.sources.map(([n, t, what]) => `<div class="cell"><span class="fi ${t}">${t.toUpperCase()}</span><span class="main"><span class="ttl small" style="font-size:15px">${esc(n)}</span><span class="sub">→ ${esc(what)}</span></span></div>`).join('')) + sf('Text pulled out of your files and sorted into the bundle automatically.') : ''}
+    ${sh('Attempts')}${b.attempts.length ? group(b.attempts.map(a => cell({ttl: a.date + ' · ' + a.mins + ' min', sub: a.words + ' words', val: a.score, a: 'openAttempt', data: `data-id="${a.id}"`})).join('')) : '<div class="empty">No attempts yet. Tap Practice to write your first.</div>'}
+    ${sh('Model answers')}${b.models.length ? group(b.models.map(m => cell({ttl: esc(m), val: '', a: 'openModels', data: `data-id="${b.id}"`})).join('')) : '<div class="empty">No model answers on this exam.</div>'}`};
+};
+V.take = ({id}) => {
+  const b = bundle(id), k = 'take-' + id;
+  if (S.drafts[k] == null) S.drafts[k] = SAMPLE_ANSWER;
+  return {title: 'Practice', right: `<span class="timer navbtn" id="clock">${clock(S.timer ? S.timer.left : 3600)}</span>`, body: `
+    <div style="padding:6px 16px 0" class="row">${ctag(b.course)}<span class="tag plain">60‑minute timer running</span></div>
+    ${sh('Question')}${group(`<details class="block"><summary class="small" style="cursor:pointer;color:var(--accent)">Show the question</summary><div class="prose serif qbox">${esc(b.question)}</div></details>`)}
+    ${sh('Your answer')}${group(block(`<textarea class="field serif" id="ans" data-d="${k}" rows="12" aria-label="Your answer">${esc(S.drafts[k])}</textarea><div class="small muted" id="wc">${wc(S.drafts[k])} words</div>`))}
+    ${sf(b.rubric ? 'This exam has a scoresheet. It stays hidden until you submit.' : 'No scoresheet: grading uses the issues found in the question.')}
+    <div class="btns">${busyBtn('submit', 'Submit for grading', 'Grading…')}<button class="btn tint" data-a="saveOnly">Save without grading</button></div>
+    <details style="margin:18px 16px 0"><summary class="small muted" style="cursor:pointer">My writing template</summary>${group(block('<p class="small"><b>Issue.</b> The issue is whether [party] [legal question] when [key fact].</p><p class="small"><b>Rule.</b> Under [source], [rule]. This requires (1)…(2)…(3).</p><p class="small"><b>Both sides.</b> Here, [A] will argue … because “[fact]”. [B] will respond …</p><p class="small"><b>Conclusion.</b> Therefore, [element] is likely [met / not met].</p>'))}</details>`};
+};
+V.feedback = ({id}) => {
+  const [b, a] = findAttempt(id), f = a.fb;
+  const tot = f.rubric.reduce((s, r) => s + r.max, 0), got = f.rubric.reduce((s, r) => s + r.earned, 0);
+  const pct = tot ? Math.round(100 * got / tot) : Math.round(Object.values(f.scores).reduce((s, v) => s + v, 0) / (5 * Object.keys(f.scores).length) * 100);
+  const sc = f.scores, nS = f.issues.filter(i => i.status === 'spotted').length, nM = f.issues.filter(i => i.status === 'missed').length;
+  return {title: 'Feedback', body: `
+    <div style="height:6px"></div>
+    <div class="hero"><div class="eb">${esc(b.title)} · ${a.date}</div>
+      ${ring(pct, tot ? `${got}<span class="muted" style="font-size:20px">/${tot}</span>` : pct + '%')}
+      <div class="verdict">${esc(f.oneLine)}</div>
+      <div class="note ${f.basis === 'scoresheet' ? 'ok' : 'warn'} small">${f.basis === 'scoresheet' ? 'Graded against this exam’s own scoresheet.' : 'No scoresheet: graded against issues found in the question.'}</div>
+      <div class="meters">${meter('Issue spotting', sc.issueSpotting)}${meter('Application', sc.application)}${meter('Both sides', sc.bothSides)}${meter('Organization', sc.organization)}${meter('Terms', sc.terminology)}</div>
+      ${f.tags.length ? `<div class="row">${f.tags.map(t => `<span class="tag bad">${t}</span>`).join('')}</div>` : ''}
+    </div>
+    ${f.rubric.length ? sh('Score by scoresheet item') + group(block(`<div class="tw"><table><tr><th>Item</th><th>Pts</th></tr>${f.rubric.map(r => `<tr><td><b>${esc(r.item)}</b><div class="small muted">${esc(r.why)}</div></td><td class="n ${r.earned < r.max / 2 ? 'lo' : ''}">${r.earned}/${r.max}</td></tr>`).join('')}</table></div>`)) + sf('An estimate against the scoresheet, not an official grade.') : ''}
+    ${f.issues.length ? sh(`Issues · ${nS} spotted · ${nM} missed`) + group(f.issues.map(i => block(`<div class="row" style="justify-content:space-between"><b>${esc(i.issue)}</b><span class="row"><span class="tag ${STATUS[i.status][1]}">${STATUS[i.status][0]}</span>${!i.both && i.status !== 'missed' ? '<span class="tag bad">one-sided</span>' : ''}</span></div>${i.els.map(([e, s, n]) => `<div class="el">${mark(s)}<span><b>${esc(e)}</b>${n ? ' <span class="muted">' + esc(n) + '</span>' : ''}</span></div>`).join('')}${i.fix ? `<div class="small" style="color:var(--accent)">${esc(i.fix)}</div>` : ''}`)).join('')) + sf('✓ applied with facts · ~ stated but thin · ✗ not applied') : ''}
+    ${f.bothSidesMissing ? sh('Counter‑arguments you never made') + group(block(f.bothSidesMissing.map(m => `<div class="note bad">${esc(m)}</div>`).join(''))) : ''}
+    ${f.organization ? sh('Organization') + group(block(`<div>Your answer reads as <b>${esc(f.organization.pattern.toLowerCase())}</b>. <span class="muted">${esc(f.organization.note)}</span></div><ol style="margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px">${f.organization.outline.map(([h, xs]) => `<li><b>${esc(h)}</b><div class="small muted">${xs.map(esc).join(' · ')}</div></li>`).join('')}</ol>`)) : ''}
+    ${f.working.length ? sh('What’s working') + group(block(f.working.map(w => `<div class="note ok">${esc(w)}</div>`).join(''))) : ''}
+    ${f.terms.length ? sh('Terminology fixes') + group(f.terms.map(([w, u, why]) => block(`<div class="small muted">You wrote “${esc(w)}”</div><div><b>${esc(u)}</b></div>${why ? `<div class="small muted">${esc(why)}</div>` : ''}`)).join('')) + sf('Added to your glossary under More.') : ''}
+    ${f.weakest ? sh('Your weakest section, rewritten') + group(block(`<div><b>${esc(f.weakest.section)}</b> <span class="muted small">· ${esc(f.weakest.why)}</span></div><div class="rewrite">${esc(f.weakest.rewrite)}</div><button class="linkbtn" data-a="copy" style="align-self:flex-start">Copy</button>`)) : ''}
+    ${b.rubric ? sh('Scoresheet') + group(`<details class="block"><summary style="cursor:pointer">Revealed after submit</summary><div class="small muted">The grader’s point sheet for this exam appears here in the real app.</div></details>`) : ''}
+    <div class="btns"><button class="btn tint" data-a="toLab">Compare to model answers <span class="tag warn">Soon</span></button><button class="btn tint" data-a="practice" data-id="${b.id}">Revise as a new attempt</button></div>`};
+};
+
+/* ---- MODELS & COMPARE ---- */
+V.models = ({id}) => {
+  const b = bundle(id || 'b1');
+  return {title: 'Models & Compare', body: `
+    <h2 class="largetitle" style="font-size:26px">Models &amp; Compare</h2>${soonBar('Preview. Comparing opens a sample result.')}<div style="height:8px"></div>
+    <div style="padding:0 16px 4px" class="row">${ctag(b.course)}<span class="small muted">${esc(b.title)}</span></div>
+    ${sh(`Model answers · ${b.models.length}/5`)}${b.models.length ? group(b.models.map((m, i) => cell({ttl: esc(m), sub: [1420, 1310, 1190][i] + ' words · extracted from Sample_answers_A.pdf', a: 'protoOnly', data: 'data-msg="Model answers open in a reader in the full app."'})).join('')) : '<div class="empty">No model answers yet.</div>'}
+    <button class="cell" data-a="protoOnly" data-msg="Paste or import is off in the prototype." style="margin:8px 16px 0;width:calc(100% - 32px);background:var(--card);border-radius:12px;color:var(--accent)"><span class="main"><span class="ttl">＋ Add model answer</span></span></button>
+    ${sh('Compare my answer')}${group(cell({ttl: 'Latest attempt', val: b.attempts[0] ? b.attempts[0].date : 'None'}))}
+    <div class="btns">${busyBtn('compare', 'Compare to models', 'Comparing…')}</div>
+    ${sf('Shows what the models do that you don’t, your issue order next to theirs, and five concrete changes.')}`};
+};
+V.compare = () => {
+  const c = COMPARE;
+  return {title: 'Comparison', body: `<div style="height:6px"></div>${soonBar('Preview with sample data.')}<div style="height:12px"></div>
+    <div class="hero"><div class="eb">Compared to 3 model answers</div><div class="verdict">${esc(c.oneLine)}</div></div>
+    ${sh('What the models do that you don’t')}${group(c.modelsDo.map(([d, w, by]) => block(`<div class="row" style="justify-content:space-between"><b>${d}</b><span class="tag plain">${by}</span></div><div class="small">${esc(w)}</div>`)).join(''))}
+    ${sh('Issue order, side by side')}${group(block(`<div class="cmp"><b>#</b><b>Models</b><b>You</b>${c.orderModels.map((m, i) => `<span class="muted">${i + 1}</span><span>${esc(m)}</span><span class="${c.orderMine[i] === '—' ? 'x' : ''}">${esc(c.orderMine[i])}</span>`).join('')}</div>`))}
+    ${sh('Five changes for next time')}${group(c.changes.map((x, i) => cell({ttl: esc(x), lead: `<span class="ico" style="background:var(--accent)"><b style="font-size:14px">${i + 1}</b></span>`})).join(''))}`};
+};
+
+/* ---- IMPORT + EXTRACTION ----
+   Files are fake; the progress is simulated. Pasted text is split for real, locally, in this page. */
+const PICKED = [
+  {n: 'Torts_Final_2025.pdf', t: 'pdf', meta: '6 pages · 412 KB'},
+  {n: 'Torts_Final_2025_scoresheet.docx', t: 'docx', meta: '2 pages · 38 KB'},
+  {n: 'Sample_answer_A.pdf', t: 'pdf', meta: '5 pages · 290 KB'},
+  {n: 'Photo of graded answer.jpg', t: 'img', meta: '1 image · 2.1 MB · handwriting'}
+];
+const EXTRACT_STEPS = ['Reading 4 files', 'Recognising text in 1 photo', 'Finding headings and question numbers', 'Sorting pieces: question, scoresheet, models, attempts', 'Pulling out course, points and time limit'];
+const SLOTS = [['q', 'Question'], ['rubric', 'Scoresheet'], ['model', 'Model'], ['attempt', 'My attempt'], ['skip', 'Skip']];
+const FAKE_PIECES = [
+  {slot: 'q', src: 'Torts_Final_2025.pdf · p. 2', conf: 98, words: 312, text: 'QUESTION 1 (60 minutes). Harbor Kayak Co. rents kayaks from a dock beside a marked shipping channel. On a windy afternoon an employee, Ruth, rents a kayak to Leo, 17, without a life vest…'},
+  {slot: 'rubric', src: 'Torts_Final_2025_scoresheet.docx', conf: 95, words: 486, text: 'Negligence — duty of a business to invitees (6 pts). Breach: life-vest policy (8 pts). Causation (6). Comparative fault of Leo (5). Waiver / minor (6). Total 45.'},
+  {slot: 'model', src: 'Sample_answer_A.pdf · p. 1–5', conf: 91, words: 1388, text: 'I. Leo v. Harbor Kayak — Negligence. Under the general rule, a business owes invitees a duty of reasonable care…'},
+  {slot: 'attempt', src: 'Photo of graded answer.jpg', conf: 78, words: 640, text: 'Leo can sue Harbor for negligence. Harbor had a duty because Leo was a customer. They breached it when Ruth gave him no vest… [grader margin note: “both sides?”]'},
+  {slot: 'skip', src: 'Torts_Final_2025.pdf · p. 1', conf: 99, words: 140, text: 'Instructions: This exam has 2 questions. Write in the answer booklet. Closed book…'}
+];
+const SAMPLE_PASTE = '=== QUESTION ===\nDana borrows her neighbour’s ladder without asking and it collapses. Discuss.\n\n=== SCORESHEET ===\nTrespass to chattels (5)\nConversion (5)\nProducts liability (8)\n\n=== MODEL: Sample 1 ===\nI. Trespass to chattels. Dana intentionally used the ladder…\n\n=== MY ANSWER ===\nDana committed conversion because she took the ladder…';
+function slotOf(h) { h = h.toLowerCase(); return /question|facts|prompt/.test(h) ? 'q' : /score|rubric|comment|grader/.test(h) ? 'rubric' : /model|sample|a\+/.test(h) ? 'model' : /my |mine|attempt|answer/.test(h) ? 'attempt' : 'skip'; }
+function splitPaste(t) {
+  const out = []; let cur = null;
+  String(t || '').split('\n').forEach(ln => {
+    const m = ln.match(/^\s*={2,}\s*(.+?)\s*={2,}\s*$/);
+    if (m) { cur = {slot: slotOf(m[1]), src: 'Pasted · “' + m[1] + '”', conf: 100, text: ''}; out.push(cur); }
+    else if (cur) cur.text += (cur.text ? '\n' : '') + ln;
+  });
+  return out.map(p => ({...p, text: p.text.trim(), words: wc(p.text)})).filter(p => p.text);
+}
+V.importPick = () => {
+  const run = S.imp && S.imp.step != null, st = run ? S.imp.step : -1;
+  return {title: 'Import', body: `<h2 class="largetitle" style="font-size:26px">Import an exam</h2>
+    ${proto('Simulated extraction · these files never leave the device')}
+    ${sh('4 files selected')}${group(PICKED.map(f => `<div class="cell"><span class="fi ${f.t}">${f.t === 'img' ? 'JPG' : f.t.toUpperCase()}</span><span class="main"><span class="ttl" style="font-size:15px">${esc(f.n)}</span><span class="sub">${esc(f.meta)}</span></span>${st >= 1 || (st === 0 && f.t !== 'img') ? '<span class="tag good">Read</span>' : ''}</div>`).join(''))}
+    ${sf('PDF, Word, plain text and photos of handwritten or printed pages.')}
+    ${run ? sh('Extracting') + group(block(`<div class="prog"><i style="width:${Math.round(100 * Math.min(st, EXTRACT_STEPS.length) / EXTRACT_STEPS.length)}%"></i></div><div class="steps">${EXTRACT_STEPS.map((x, i) => `<div class="stp ${i < st ? 'done' : i === st ? 'now' : ''}"><span class="k">${i < st ? '✓' : ''}</span>${esc(x)}</div>`).join('')}</div>`)) : ''}
+    <div class="btns"><button class="btn" data-a="extract" ${run ? 'disabled' : ''}>${run ? '<span class="spin"></span>Extracting…' : 'Extract text from 4 files'}</button></div>`};
+};
+V.importPaste = () => {
+  if (S.pasted == null) S.pasted = SAMPLE_PASTE;
+  const n = splitPaste(S.pasted).length;
+  return {title: 'Paste', body: `<h2 class="largetitle" style="font-size:26px">Paste everything</h2>
+    ${sf('Put a heading line before each piece, like <b>=== QUESTION ===</b>, <b>=== SCORESHEET ===</b>, <b>=== MODEL: Sample 1 ===</b>, <b>=== MY ANSWER ===</b>. This split runs for real, inside the page.')}
+    <div style="height:10px"></div>${group(block(`<textarea class="field" data-d="__paste" rows="12" style="font-family:var(--mono);font-size:13.5px" aria-label="Pasted exam material">${esc(S.pasted)}</textarea>`))}
+    <div class="sf" id="pasteCount">${n} piece${n === 1 ? '' : 's'} found</div>
+    <div class="btns"><button class="btn" data-a="splitPaste">Split into pieces</button></div>`};
+};
+V.extracted = () => {
+  const I = S.imp, P = I.pieces, cnt = k => P.filter(p => p.slot === k).length;
+  return {title: 'Review', right: '<button class="navbtn b" data-a="createFromImport">Create</button>', body: `<h2 class="largetitle" style="font-size:26px">We found ${P.length} pieces</h2>
+    ${proto(I.fromPaste ? 'Split locally from your pasted text' : 'Simulated result · nothing was uploaded')}
+    ${sh('Detected details')}${group(block(`<div class="kv">
+      <span>Course</span><b>${I.fromPaste ? 'Torts' : 'Torts'}</b><span class="conf">from header</span>
+      <span>Exam</span><b>${I.fromPaste ? 'Pasted practice' : 'Final 2025 · Q1'}</b><span class="conf">file name</span>
+      <span>Time limit</span><b>${I.fromPaste ? '—' : '60 min'}</b><span class="conf ${I.fromPaste ? 'mid' : ''}">${I.fromPaste ? 'not found' : 'question text'}</span>
+      <span>Points</span><b>${I.fromPaste ? '18' : '45'}</b><span class="conf">scoresheet</span></div>`))}
+    ${sh(`Pieces · ${cnt('q')} question · ${cnt('rubric')} scoresheet · ${cnt('model')} model · ${cnt('attempt')} attempt`)}
+    ${group(P.map((p, i) => block(`<div class="row" style="justify-content:space-between"><span class="small muted">${esc(p.src)}</span><span class="conf ${p.conf < 85 ? 'mid' : ''}">${p.conf}% sure</span></div>
+      <div class="snip">${esc(p.text.slice(0, 190))}${p.text.length > 190 ? '…' : ''}</div>
+      <div class="row" style="justify-content:space-between"><div class="minis" role="group" aria-label="Goes to">${SLOTS.map(([k, l]) => `<button data-a="setSlot" data-i="${i}" data-k="${k}" aria-pressed="${p.slot === k}">${l}</button>`).join('')}</div><span class="small muted">${p.words} words</span></div>
+      ${p.conf < 85 ? '<div class="note warn small">Read from a photo. Check the text before grading.</div>' : ''}`)).join(''))}
+    ${sf('Tap a label to move a piece. The scoresheet stays hidden while you practise.')}
+    <div class="btns"><button class="btn" data-a="createFromImport">Create exam bundle</button></div>`};
+};
+V.ruleImport = () => {
+  if (S.bulkRules == null) S.bulkRules = 'Battery: an intentional harmful or offensive contact with the person of another.\nAssault: an intentional act creating reasonable apprehension of imminent harmful or offensive contact.\nFalse imprisonment: intentional confinement within fixed boundaries the plaintiff knows of or is harmed by.\nTrespass to land: intentional physical entry onto land in the possession of another.';
+  const found = parseRules(S.bulkRules);
+  return {title: 'Add rules', body: `<h2 class="largetitle" style="font-size:26px">Add rules in bulk</h2>
+    ${sf('One rule per line as <b>Title: rule</b>. A line without a colon continues the rule above. Parsing runs for real in the page.')}
+    <div style="height:10px"></div>${group(block(`<textarea class="field serif" data-d="__rules" rows="8" aria-label="Rules to add">${esc(S.bulkRules)}</textarea>`))}
+    <div id="rulePrev">${rulePreview(found)}</div>
+    <div class="btns"><button class="btn" data-a="addRules">Add to Torts</button></div>`};
+};
+function parseRules(t) { const out = []; String(t || '').split('\n').forEach(l => { const s = l.trim(); if (!s) return; const i = s.indexOf(':'); if (i > 0 && i < 60) out.push({title: s.slice(0, i).trim(), ref: s.slice(i + 1).trim()}); else if (out.length) out[out.length - 1].ref += ' ' + s; }); return out.filter(r => r.title && r.ref); }
+function rulePreview(f) { return sh(`Found ${f.length} rule${f.length === 1 ? '' : 's'}`) + (f.length ? group(f.map(r => cell({ttl: `<span class="row" style="flex-wrap:nowrap;gap:10px"><span class="dot"></span>${esc(r.title)}</span>`, sub: esc(r.ref.slice(0, 90)) + (r.ref.length > 90 ? '…' : '')})).join('')) : '<div class="empty">Nothing yet. Use “Title: rule”.</div>'); }
+
+/* ---- DRILL ---- */
+V.drill = () => ({title: 'Drill', large: true, body: `
+  ${proto('Prototype · timers run, review is simulated')}
+  ${group(block(`<div style="font:600 13px var(--sans);letter-spacing:.06em;text-transform:uppercase;color:var(--accent)">The first 15 minutes</div><div style="font:700 22px/1.2 var(--round)">Spot every issue. Outline every element.</div><div class="small muted">5 minutes to list the issues, 10 to outline: rule and source, numbered elements, a fact for and against each. Then a review against the grader’s view.</div>`))}
+  ${sh('Fact pattern')}${group(cell({ttl: 'Midterm 2025 · The Bakery Flyer', sub: ctag('con'), a: 'protoOnly', data: 'data-msg="Pick any saved exam here in the full app."'}) + cell({ttl: 'Spot', val: '5 min'}) + cell({ttl: 'Outline', val: '10 min'}))}
+  <div class="btns"><button class="btn" data-a="drillStart">Start the clock</button></div>
+  ${sh('Past drills')}${group(DRILLS.map(d => cell({ttl: esc(bundle(d.bundle).title), sub: `${d.date} · spot ${d.spot} min · outline ${d.out} min`, val: d.pct + '%', a: 'drillOpen'})).join(''))}`});
+V.drillRun = ({phase}) => {
+  const k = phase === 1 ? 'dIssues' : 'dOutline';
+  if (S.drafts[k] == null) S.drafts[k] = phase === 1 ? DRILL_ISSUES : DRILL_OUTLINE;
+  const issues = S.drafts.dIssues.split('\n').filter(x => x.trim());
+  return {title: `Phase ${phase} of 2`, right: `<span class="timer navbtn" id="clock">${clock(S.timer ? S.timer.left : phase === 1 ? 300 : 600)}</span>`, body: `
+    <div style="padding:6px 16px 0;font:600 13px var(--sans);letter-spacing:.06em;text-transform:uppercase;color:var(--accent)">${phase === 1 ? 'Spot the issues' : 'Outline the argument'}</div>
+    <h2 class="largetitle" style="font-size:24px;padding-top:2px">The Bakery Flyer</h2>
+    ${group(`<details class="block"><summary class="small" style="cursor:pointer;color:var(--accent)">Show the question</summary><div class="prose serif qbox">${esc(bundle('b1').question)}</div></details>`)}
+    ${phase === 2 ? `<div class="chips" style="padding-top:12px">${issues.map(i => `<span class="chip" style="font-size:13px">${esc(i.slice(0, 34))}</span>`).join('')}</div>` : ''}
+    ${sh(phase === 1 ? 'Every issue, one per line' : 'Rule + source, elements, facts for and against')}
+    ${group(block(`<textarea class="field ${phase === 2 ? '' : 'serif'}" data-d="${k}" rows="${phase === 1 ? 9 : 12}" style="${phase === 2 ? 'font-family:var(--mono);font-size:14px' : ''}" aria-label="${phase === 1 ? 'Issue list' : 'Outline'}">${esc(S.drafts[k])}</textarea>`))}
+    ${sf(phase === 1 ? issues.length + ' issues listed' : wc(S.drafts.dOutline) + ' words')}
+    <div class="btns">${phase === 1 ? '<button class="btn" data-a="drillNext">Done spotting · start outline</button>' : busyBtn('drillSubmit', 'Submit for review', 'Reviewing…')}</div>`};
+};
+V.drillResult = () => {
+  const f = DRILL_FB, sc = f.scores;
+  return {title: 'Drill review', body: `<div style="height:6px"></div>
+    <div class="hero"><div class="eb">First 15 minutes · The Bakery Flyer</div>${ring(74, '74%')}<div class="verdict">${esc(f.oneLine)}</div>
+      <div class="meters">${meter('Issue spotting', sc.issueSpotting)}${meter('Rule + elements', sc.ruleElements)}${meter('Authority', sc.authority)}${meter('Both sides', sc.bothSides)}${meter('Prioritising', sc.prioritization)}</div></div>
+    ${sh('Issues: spotted vs missed')}${group(f.issues.map(([i, s, p]) => cell({ttl: esc(i), sub: `<span class="tag ${STATUS[s][1]}">${STATUS[s][0]}</span>`, val: p + ' pts'})).join(''))}
+    ${sh('Does the outline get you to an A?')}${group(block(`<div class="tw"><table><tr><th>Issue</th><th>Rule</th><th>Auth.</th><th>Facts</th><th>Both</th></tr>${f.check.map(([i, r, au, fa, bo, fix]) => `<tr><td><b>${esc(i)}</b><div class="small muted">${esc(fix)}</div></td><td>${mark(r)}</td><td>${mark(au)}</td><td>${mark(fa)}</td><td>${mark(bo)}</td></tr>`).join('')}</table></div>`))}
+    ${sh('Next time, in the first 15 minutes')}${group(block(f.next.map(n => `<div class="note info">${esc(n)}</div>`).join('')))}
+    <div class="btns"><button class="btn tint" data-a="drillAgain">Run this question again</button></div>`};
+};
+
+/* ---- WRITE ---- */
+V.write = () => {
+  const k = 'w' + S.level; if (S.drafts[k] == null) S.drafts[k] = WRITE_TEXT[S.level];
+  const r = RULES.find(x => x.id === S.writeRule);
+  const label = ['', 'Your rule statement', 'Your rule, broken into elements', 'Your rule + one element applied', 'Your full answer'][S.level];
+  return {title: 'Write', large: true, body: `
+    ${proto('Prototype · feedback is a canned example')}
+    <div class="seg" role="group" aria-label="Level">${LEVELS.map(l => `<button data-a="level" data-n="${l.n}" aria-pressed="${S.level === l.n}">${l.n} · ${l.t}</button>`).join('')}</div>
+    ${sf(LEVELS[S.level - 1].s + '. Levels build from a single rule up to a whole exam answer.')}
+    ${sh('Rule')}${group(cell({ttl: esc(r.title), sub: ctag(r.course), a: 'pickRule'}) + `<details class="block"><summary class="small" style="cursor:pointer;color:var(--accent)">Peek at the black‑letter rule</summary><div class="small serif">${esc(r.ref)}</div></details>`)}
+    ${S.level >= 3 ? sh('Facts') + group(cell({ttl: 'Midterm 2025 · The Bakery Flyer', sub: 'Attached from Exams'})) : ''}
+    ${sh(label)}${group(block(`<textarea class="field serif" data-d="${k}" rows="${S.level === 4 ? 12 : 7}" aria-label="${label}">${esc(S.drafts[k])}</textarea><div class="small muted">${wc(S.drafts[k])} words</div>`))}
+    <div class="btns">${busyBtn('writeGo', 'Get feedback', 'Grading…')}</div>`};
+};
+V.writeFb = () => {
+  const f = WRITE_FB;
+  return {title: 'Feedback', body: `<div style="height:6px"></div>
+    <div class="hero"><div class="eb">Level ${S.level} · Promissory estoppel</div><div class="verdict">${esc(f.oneLine)}</div><div class="meters">${f.scores.map(([l, v]) => meter(l, v)).join('')}</div></div>
+    ${sh('What’s working')}${group(block(f.working.map(w => `<div class="note ok">${esc(w)}</div>`).join('')))}
+    ${sh('What’s not')}${group(block(f.notWorking.map(n => `<div class="note bad"><b>${esc(n.issue)}</b><q>“${esc(n.quote)}”</q><span>${esc(n.fix)}</span></div>`).join('')))}
+    ${sh('Missing')}${group(f.missing.map(m => cell({ttl: esc(m)})).join(''))}
+    ${sh('Terminology')}${group(f.terms.map(([w, u, why]) => block(`<div class="small muted">You wrote “${esc(w)}”</div><b>${esc(u)}</b><div class="small muted">${esc(why)}</div>`)).join(''))}
+    ${sh('Exam‑ready version')}${group(block(`<div class="rewrite">${esc(f.rewrite)}</div><div class="row" style="gap:18px"><button class="linkbtn" data-a="copy">Copy</button><button class="linkbtn" data-a="saveRule">Save to Rule Bank</button></div>`))}`};
+};
+V.pickRule = () => ({title: 'Choose a rule', body: `<div style="height:8px"></div>${Object.entries(COURSES).map(([k, c]) => sh(c.name) + group(RULES.filter(r => r.course === k).map(r => cell({ttl: esc(r.title), val: r.id === S.writeRule ? '<span style="color:var(--accent)">✓</span>' : '', a: 'setRule', data: `data-id="${r.id}"`, chev: false})).join(''))).join('')}`});
+
+/* ---- RULES ---- */
+V.rules = () => {
+  const q = S.ruleQ.toLowerCase();
+  const shown = RULES.filter(r => (S.ruleSt === 'all' || r.st === S.ruleSt) && (!q || (r.title + ' ' + r.ref).toLowerCase().includes(q)));
+  const solid = RULES.filter(r => r.st === 'solid').length;
+  return {title: 'Rule Bank', large: true, right: '<button class="navbtn" data-a="go" data-v="ruleImport" aria-label="Add rules">＋</button>', body: `
+    <label class="search"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="ruleQ" type="search" placeholder="Search rules" value="${esc(S.ruleQ)}" autocomplete="off"></label>
+    <div style="height:8px"></div>
+    <div class="seg" role="group" aria-label="Status">${[['all', 'All'], ['none', 'Not started'], ['draft', 'Draft'], ['solid', 'Solid']].map(([k, l]) => `<button data-a="ruleSt" data-k="${k}" aria-pressed="${S.ruleSt === k}">${l}</button>`).join('')}</div>
+    ${sf(`${solid} of ${RULES.length} rules marked solid`)}
+    <div id="ruleList">${ruleList(shown)}</div>`};
+};
+function ruleList(shown) {
+  const out = Object.entries(COURSES).map(([k, c]) => { const xs = shown.filter(r => r.course === k); return xs.length ? sh(`${c.name} · ${xs.length}`) + group(xs.map(r => cell({ttl: `<span class="row" style="flex-wrap:nowrap;gap:10px"><span class="dot ${r.st}"></span>${esc(r.title)}</span>`, sub: esc(r.ref.slice(0, 80)) + '…', a: 'openRule', data: `data-id="${r.id}"`})).join('')) : ''; }).join('');
+  return out || '<div class="empty">No rules match.</div>';
+}
+V.rule = ({id}) => {
+  const r = RULES.find(x => x.id === id);
+  return {title: r.title, body: `
+    <div style="padding:6px 16px 0">${ctag(r.course)}</div><h2 class="largetitle" style="font-size:26px;padding-top:6px">${esc(r.title)}</h2>
+    ${sh('Status')}<div class="seg" role="group" aria-label="Rule status">${[['none', 'Not started'], ['draft', 'Draft'], ['solid', 'Solid']].map(([k, l]) => `<button data-a="setSt" data-id="${r.id}" data-k="${k}" aria-pressed="${r.st === k}">${l}</button>`).join('')}</div>
+    ${sh('Black‑letter rule')}${group(block(`<div class="prose serif">${esc(r.ref)}</div>`))}
+    ${sh('My version')}${group(block(r.mine ? `<div class="prose serif">${esc(r.mine)}</div>` : '<div class="muted small">Not written yet. Practise it in Write.</div>'))}
+    <div class="btns"><button class="btn" data-a="practiceRule" data-id="${r.id}">Practise this rule</button></div>`};
+};
+
+/* ---- MORE ---- */
+const ICO = {
+  models: ['var(--c-tor)', '<path d="M4 5h7v14H4zM13 5h7v14h-7z"/>'],
+  tear: ['#C2410C', '<path d="M5 4h14v16H5z"/><path d="M8 8h8M8 12h5M8 16h7"/>'],
+  patterns: ['var(--c-civ)', '<path d="M4 19V5M4 19h16M7 15l4-4 3 3 5-6"/>'],
+  gloss: ['var(--c-con)', '<path d="M5 4h11l3 3v13H5z"/><path d="M9 10h6M9 14h4"/>'],
+  about: ['#6B7280', '<circle cx="12" cy="12" r="8"/><path d="M12 11v5M12 8h.01"/>']
+};
+const lead = k => `<span class="ico" style="background:${ICO[k][0]}"><svg viewBox="0 0 24 24">${ICO[k][1]}</svg></span>`;
+V.progress = () => ({title: 'Progress', body: `<h2 class="largetitle" style="font-size:30px">Progress</h2>
+  ${sh('Your habits')}${group(cell({ttl: 'My Patterns', lead: lead('patterns'), val: '8 sessions', a: 'go', data: 'data-v="patterns"'}) + cell({ttl: 'Term Glossary', lead: lead('gloss'), val: PATTERNS.glossary.length, a: 'go', data: 'data-v="glossary"'}))}
+  ${sh('App')}${group(cell({ttl: 'About this prototype', lead: lead('about'), a: 'go', data: 'data-v="about"'}))}
+  ${sf('Law Hub prototype · v0.4 · sample data only')}`});
+
+/* ---- COMPARE (center tab · coming soon) ---- */
+const soonBar = t => `<div class="soonbar"><span class="tag warn">Coming soon</span><span>${t}</span></div>`;
+V.lab = () => ({title: 'Compare', large: true, body: `
+  ${soonBar('A preview of what’s next. The screens below use sample data.')}
+  <div style="height:14px"></div>
+  <div class="hero"><div class="eb">Next release</div><div class="verdict">Line your answer up against the A answers, and take an A+ answer apart sentence by sentence.</div>
+    <button class="btn" style="width:100%;margin:0" data-a="notify">Notify me when it’s ready</button></div>
+  ${sh('Models & Compare')}${group(cell({ttl: 'Compare my answer to model answers', sub: 'What the A answers do that you don’t, issue order side by side, five changes', lead: lead('models'), a: 'go', data: 'data-v="compare"'}) + cell({ttl: 'Model answers by exam', sub: 'Up to five per exam, extracted from your files', lead: lead('gloss'), a: 'go', data: 'data-v="models"'}))}
+  ${sh('A+ Teardown')}${group(cell({ttl: 'Take apart an A+ answer', sub: 'Structure, rule formula, both-sides moves, colour-coded sentence map', lead: lead('tear'), a: 'go', data: 'data-v="teardown"'}))}
+  ${sh('Sneak peek')}<div class="preview">${group(block(`<div class="cmp"><b>#</b><b>Models</b><b>You</b>${COMPARE.orderModels.slice(0, 4).map((m, i) => `<span class="muted">${i + 1}</span><span>${esc(m)}</span><span class="${COMPARE.orderMine[i] === '—' ? 'x' : ''}">${esc(COMPARE.orderMine[i])}</span>`).join('')}</div>`))}</div>`});
+V.teardown = () => {
+  const t = TEARDOWN, L = {I: 'Issue', R: 'Rule', A: 'Application', C: 'Other side', X: 'Conclusion'};
+  return {title: 'A+ Teardown', body: `
+    <h2 class="largetitle" style="font-size:26px">A+ Teardown</h2>${soonBar('Preview with sample data.')}<div style="height:8px"></div><div style="padding:0 16px" class="row">${ctag(t.course)}<span class="small muted">${esc(t.title)}</span></div>
+    <div style="height:12px"></div><div class="hero"><div class="eb">Why it scores high</div><div class="verdict">${esc(t.verdict)}</div></div>
+    ${sh('Sentence map')}${group(block(`<div class="legend">${Object.entries(L).map(([k, v]) => `<span class="ann"><span class="${k}" style="padding:2px 8px">${v}</span></span>`).join('')}</div><div class="ann">${t.sentences.map(([k, s]) => `<span class="${k}">${esc(s)}</span>`).join(' ')}</div>`))}
+    ${sh('Rule formula')}${group(block(`<div class="rewrite">${esc(t.formula)}</div>`))}
+    ${sh('Checklist to reproduce it')}${group(t.checklist.map((c, i) => cell({ttl: esc(c), lead: `<span class="ico" style="background:var(--accent)"><b style="font-size:14px">${i + 1}</b></span>`})).join(''))}`};
+};
+V.patterns = () => {
+  const P = PATTERNS, max = P.tags[0][1], W = 320, H = 150, n = P.trend.length;
+  const x = i => 30 + i * (W - 44) / (n - 1), y = v => 12 + (100 - v) * (H - 40) / 60 - 0;
+  const yy = v => 14 + (80 - v) * (H - 44) / 40; // axis 40–80%
+  const pts = P.trend.map(([, v], i) => `${x(i)},${yy(v)}`).join(' ');
+  return {title: 'My Patterns', body: `
+    <h2 class="largetitle" style="font-size:26px">My Patterns</h2>
+    ${sh('Score trend')}${group(block(`<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto" role="img" aria-label="Score trend from 52% to 74% over eight sessions">
+      ${[40, 60, 80].map(v => `<line x1="30" x2="${W - 8}" y1="${yy(v)}" y2="${yy(v)}" stroke="var(--sep)"/><text x="0" y="${yy(v) + 4}" font-size="10" fill="var(--fg2)">${v}%</text>`).join('')}
+      <polygon points="${x(0)},${yy(40)} ${pts} ${x(n - 1)},${yy(40)}" fill="var(--accent-soft)"/>
+      <polyline points="${pts}" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+      ${P.trend.map(([d, v], i) => `<circle cx="${x(i)}" cy="${yy(v)}" r="${i === n - 1 ? 5 : 3}" fill="${i === n - 1 ? 'var(--accent)' : 'var(--card)'}" stroke="var(--accent)" stroke-width="2"><title>${d}: ${v}%</title></circle>`).join('')}
+      <text x="${x(0)}" y="${H - 4}" font-size="10" fill="var(--fg2)">${P.trend[0][0]}</text><text x="${x(n - 1)}" y="${H - 4}" font-size="10" fill="var(--fg2)" text-anchor="end">${P.trend[n - 1][0]}</text>
+      <text x="${x(n - 1) - 8}" y="${yy(74) - 9}" font-size="12" font-weight="700" fill="var(--accent)" text-anchor="end">74%</text></svg>`))}
+    ${sf('Practice exams, drills and write sessions, as a percent of points available.')}
+    ${sh('Error tags')}${group(block(P.tags.map(([t, c]) => `<div class="mtr"><div class="l"><span>${t}</span><b>${c}</b></div><div class="bar lo"><i style="width:${Math.round(100 * c / max)}%"></i></div></div>`).join('')))}
+    ${sf('“One-sided” means an element was argued for only one party.')}`};
+};
+V.glossary = () => ({title: 'Term Glossary', body: `<h2 class="largetitle" style="font-size:26px">Term Glossary</h2>${sf('Built from the terminology fixes in your feedback.')}<div style="height:8px"></div>${group(PATTERNS.glossary.map(([w, u, c]) => block(`<div class="row" style="justify-content:space-between"><span class="small muted">Instead of “${esc(w)}”</span>${ctag(c)}</div><b>${esc(u)}</b>`)).join(''))}`});
+V.about = () => ({title: 'About', body: `<h2 class="largetitle" style="font-size:26px">About this prototype</h2>
+  ${group(block(`<div class="note warn"><b>Non‑working prototype</b><span>Every exam, score and piece of feedback here is invented sample data. Grading buttons wait a moment, then show a prepared result.</span></div>
+  <div class="note ok"><b>No data leaves this screen</b><span>No network requests, no accounts, no storage. Typing into a box changes only what you see until you reload.</span></div>`))}
+  ${sh('What the full app would add')}${group(cell({ttl: 'Import exams, scoresheets and models'}) + cell({ttl: 'Real AI grading with your own rubric'}) + cell({ttl: 'Sync across devices'}))}
+  ${sf('Profile is intentionally left out of this build.')}`});
+
+/* =====================================================================
+   RENDER
+   ===================================================================== */
+function render(dir, keepScroll) {
+  const scr = cur(), out = V[scr.v](scr), st = stack();
+  const prev = st.length > 1 ? V[st[st.length - 2].v](st[st.length - 2]).title : '';
+  const vp = $('#viewport'), oldPage = $('.page', vp), y = keepScroll && oldPage ? oldPage.scrollTop : 0;
+  const page = document.createElement('div');
+  page.className = 'page' + (dir ? ' ' + dir : '');
+  page.innerHTML = `<header class="nav${out.large ? '' : ' small'}"><div class="navrow">
+      ${prev ? `<button class="back" data-a="back">${BACK}<span>${esc(prev.length > 14 ? 'Back' : prev)}</span></button>` : `<button class="navlead" data-a="go" data-v="progress" aria-label="Progress">${PROGRESS_ICON}</button>`}
+      <span class="t">${esc(out.title)}</span>${out.right || '<span></span>'}</div></header>
+    ${out.large ? `<h1 class="largetitle">${esc(out.title)}</h1>` : ''}${out.body}`;
+  vp.innerHTML = ''; vp.appendChild(page); page.scrollTop = y;
+  page.addEventListener('scroll', () => page.querySelector('.nav').classList.toggle('solid', page.scrollTop > (out.large ? 38 : 2)), {passive: true});
+  $('#tabbar').innerHTML = TABS.map(([k, l, ic]) => k === 'lab'
+    ? `<button role="tab" class="ctr" data-a="tab" data-t="${k}" aria-selected="${S.tab === k}" aria-label="Compare, coming soon"><span class="fab"><svg viewBox="0 0 24 24" aria-hidden="true">${ic}</svg></span><span class="soon">Soon</span>${l}</button>`
+    : `<button role="tab" data-a="tab" data-t="${k}" aria-selected="${S.tab === k}"><svg viewBox="0 0 24 24" aria-hidden="true">${ic}</svg>${l}</button>`).join('');
+}
+
+/* ---------- sheet: new exam bundle (adds an in-memory row only) ---------- */
+function openSheet() {
+  const scr = $('#screen');
+  scr.insertAdjacentHTML('beforeend', `<div class="dim" data-a="closeSheet"></div><div class="sheet" role="dialog" aria-label="New exam bundle"><div class="grabber"></div>
+    <div class="navrow"><button class="navbtn" style="justify-self:start" data-a="closeSheet">Cancel</button><span class="t" style="opacity:1">New Exam</span><button class="navbtn b" data-a="addBundle">Add</button></div>
+    ${sh('Title')}${group(block('<input class="field" id="nbTitle" value="Practice · Duty to Rescue" aria-label="Title">'))}
+    ${sh('Course')}<div class="seg" id="nbCourse">${Object.entries(COURSES).map(([k, c], i) => `<button data-a="nbCourse" data-k="${k}" aria-pressed="${i === 1}">${c.name}</button>`).join('')}</div>
+    ${sh('Question')}${group(block('<textarea class="field serif" rows="5" aria-label="Question">Ana sees a stranger collapse at a bus stop and walks past. Discuss.</textarea>'))}
+    ${sf('In the prototype the new exam lives in memory and disappears when you reload.')}</div>`);
+}
+function closeSheet() { document.querySelectorAll('.dim,.sheet,.asheet').forEach(e => e.remove()); }
+function openAddMenu() {
+  $('#screen').insertAdjacentHTML('beforeend', `<div class="dim" data-a="closeSheet"></div><div class="asheet" role="dialog" aria-label="Add an exam"><div class="g"><div class="hd">Add an exam. Law Hub pulls out the question, scoresheet, model answers and your attempts.</div>
+    <button data-a="menuImport">Import files…</button><button data-a="menuPaste">Paste text</button><button data-a="menuScan">Scan pages with camera</button><button data-a="menuBlank">Blank exam</button></div>
+    <div class="g"><button class="cx" data-a="closeSheet">Cancel</button></div></div>`);
+}
+
+/* ---------- actions ---------- */
+const A = {
+  tab: e => switchTab(e.dataset.t),
+  back: pop,
+  filter: e => { S.filter = e.dataset.k; render(null); },
+  openBundle: e => push({v: 'bundle', id: e.dataset.id}),
+  practice: e => { push({v: 'take', id: e.dataset.id}); startTimer(3600); },
+  submit: () => fakeWork('submit', 1600, () => { stopTimer(); const b = bundle(cur().id); const id = b.attempts[0] ? b.attempts[0].id : 'a2'; push({v: 'feedback', id: b.attempts[0] ? id : 'a2'}); }),
+  saveOnly: () => toast('Saved (in this prototype, until you reload)'),
+  openAttempt: e => push({v: 'feedback', id: e.dataset.id}),
+  openModels: e => push({v: 'models', id: e.dataset.id}),
+  compare: () => fakeWork('compare', 1500, () => push({v: 'compare'})),
+  newBundle: openSheet, closeSheet,
+  addMenu: openAddMenu,
+  menuImport: () => { closeSheet(); S.imp = null; push({v: 'importPick'}); },
+  menuPaste: () => { closeSheet(); push({v: 'importPaste'}); },
+  menuScan: () => { closeSheet(); toast('Camera is off in the prototype'); },
+  menuBlank: () => { closeSheet(); openSheet(); },
+  extract: () => {
+    S.imp = {step: 0}; render(null, true);
+    const tick = () => { if (!S.imp || S.imp.step == null) return; if (S.tab !== 'exams' || cur().v !== 'importPick') { S.imp = null; return; } S.imp.step++; if (S.imp.step > EXTRACT_STEPS.length) { S.imp = {pieces: FAKE_PIECES.map(p => ({...p})), fromPaste: false}; push({v: 'extracted'}); return; } if (cur().v === 'importPick') render(null, true); setTimeout(tick, 650); };
+    setTimeout(tick, 650);
+  },
+  splitPaste: () => { const ps = splitPaste(S.pasted); if (!ps.length) { toast('No “=== HEADING ===” lines found'); return; } S.imp = {pieces: ps, fromPaste: true}; push({v: 'extracted'}); },
+  setSlot: e => { S.imp.pieces[+e.dataset.i].slot = e.dataset.k; render(null, true); },
+  createFromImport: () => {
+    const P = S.imp.pieces, q = P.find(p => p.slot === 'q');
+    BUNDLES.unshift({id: 'n' + (++S.extraBundles), course: 'tor', title: S.imp.fromPaste ? 'Pasted practice exam' : 'Final 2025 · Harbor Kayak', rubric: P.some(p => p.slot === 'rubric'),
+      models: P.filter(p => p.slot === 'model').map((p, i) => 'Sample ' + (i + 1)), question: q ? q.text : '(no question found)', sources: S.imp.fromPaste ? null : PICKED.map((f, i) => [f.n, f.t, ['Question', 'Scoresheet · 45 pts', '1 model answer', 'Attempt · from photo'][i]]),
+      attempts: P.filter(p => p.slot === 'attempt').map(p => ({id: 'x' + S.extraBundles, date: 'Today', mins: 60, words: p.words, score: '—', fb: FB_LIGHT('Imported attempt. Grade it to see feedback.', {issueSpotting: 3, application: 2, bothSides: 2, organization: 3, terminology: 3}, ['one-sided'])}))});
+    S.imp = null; S.stacks.exams = [{v: 'exams'}]; S.filter = 'all'; render('pop'); toast('Exam created from ' + P.length + ' pieces');
+  },
+  addRules: () => { const f = parseRules(S.bulkRules); f.forEach((r, i) => RULES.push({id: 'nr' + Date.now() + i, course: 'tor', title: r.title, st: 'none', ref: r.ref, mine: ''})); S.bulkRules = null; pop(); toast(f.length + ' rules added'); },
+  toLab: () => switchTab('lab'),
+  notify: () => toast('You’ll hear about it first (prototype)'),
+  nbCourse: e => { document.querySelectorAll('#nbCourse button').forEach(b => b.setAttribute('aria-pressed', b === e)); },
+  addBundle: () => {
+    const t = ($('#nbTitle').value || 'Untitled exam').trim(), c = ($('#nbCourse [aria-pressed="true"]') || {}).dataset?.k || 'tor';
+    BUNDLES.unshift({id: 'n' + (++S.extraBundles), course: c, title: t, rubric: false, models: [], question: 'Ana sees a stranger collapse at a bus stop and walks past. Discuss.', attempts: []});
+    closeSheet(); render(null); toast('Exam added');
+  },
+  drillStart: () => { S.drafts.dIssues = null; S.drafts.dOutline = null; push({v: 'drillRun', phase: 1}); startTimer(300); },
+  drillNext: () => { push({v: 'drillRun', phase: 2}); startTimer(600); },
+  drillSubmit: () => fakeWork('drillSubmit', 1600, () => { stopTimer(); S.stacks.drill = [{v: 'drill'}]; push({v: 'drillResult'}); }),
+  drillOpen: () => push({v: 'drillResult'}),
+  drillAgain: () => { S.stacks.drill = [{v: 'drill'}]; A.drillStart(); },
+  level: e => { S.level = +e.dataset.n; render(null, true); },
+  pickRule: () => push({v: 'pickRule'}),
+  setRule: e => { S.writeRule = e.dataset.id; pop(); },
+  writeGo: () => fakeWork('writeGo', 1400, () => push({v: 'writeFb'})),
+  saveRule: () => toast('Saved to Rule Bank'),
+  openRule: e => push({v: 'rule', id: e.dataset.id}),
+  setSt: e => { RULES.find(r => r.id === e.dataset.id).st = e.dataset.k; render(null, true); },
+  ruleSt: e => { S.ruleSt = e.dataset.k; render(null, true); },
+  practiceRule: e => { S.writeRule = e.dataset.id; S.level = 2; S.tab = 'write'; S.stacks.write = [{v: 'write'}]; render('fade'); },
+  go: e => push({v: e.dataset.v}),
+  copy: () => toast('Copied'),
+  protoOnly: e => toast(e.dataset.msg || 'Not part of the prototype')
+};
+document.addEventListener('click', ev => {
+  const el = ev.target.closest('[data-a]'); if (!el) return;
+  const f = A[el.dataset.a]; if (f) { ev.preventDefault(); f(el); }
+});
+document.addEventListener('input', ev => {
+  const t = ev.target;
+  if (t.dataset && t.dataset.d === '__paste') { S.pasted = t.value; const n = splitPaste(t.value).length; $('#pasteCount').textContent = n + ' piece' + (n === 1 ? '' : 's') + ' found'; return; }
+  if (t.dataset && t.dataset.d === '__rules') { S.bulkRules = t.value; $('#rulePrev').innerHTML = rulePreview(parseRules(t.value)); return; }
+  if (t.dataset && t.dataset.d) { S.drafts[t.dataset.d] = t.value; const w = $('#wc'); if (w) w.textContent = wc(t.value) + ' words'; }
+  if (t.id === 'ruleQ') { S.ruleQ = t.value; const q = t.value.toLowerCase(); $('#ruleList').innerHTML = ruleList(RULES.filter(r => (S.ruleSt === 'all' || r.st === S.ruleSt) && (!q || (r.title + ' ' + r.ref).toLowerCase().includes(q)))); }
+});
+document.addEventListener('keydown', ev => { if (ev.key === 'Escape') closeSheet(); });
+
+render();
+</script>
+
+</body>
+</html>
